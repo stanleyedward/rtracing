@@ -12,12 +12,13 @@ int main() {
 
   // render the image
   for (int i = 0; i < image_height; i++) {
-    std::clog << "\rScanlines remaining: " << (image_height - i) << " " << std::flush;
+    std::clog << "\rScanlines remaining: " << (image_height - i) << " "
+              << std::flush;
     for (int j = 0; j < image_width; j++) {
-      // convert to [0,1] -> double
-      auto r = double(i) / (image_width - 1);
+      // convert to [0,1] -> float
+      auto r = float(i) / (image_width - 1);
       auto g = 0.0;
-      auto b = double(j) / (image_height - 1);
+      auto b = float(j) / (image_height - 1);
 
       // convert to [0, 255]
       int ir = int(r * 255.999);
