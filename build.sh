@@ -1,3 +1,7 @@
+##format
+
+clang-format -i src/main.cpp
+
 #configure
 cmake -B build/Release -DCMAKE_BUILD_TYPE=Release
 
