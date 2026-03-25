@@ -136,29 +136,29 @@ inOneWeekend/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/build
 .PHONY : inOneWeekend/fast
 
-2_output_an_image/main.o: 2_output_an_image/main.cpp.o
-.PHONY : 2_output_an_image/main.o
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
 
 # target to build an object file
-2_output_an_image/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o
-.PHONY : 2_output_an_image/main.cpp.o
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
 
-2_output_an_image/main.i: 2_output_an_image/main.cpp.i
-.PHONY : 2_output_an_image/main.i
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
 
 # target to preprocess a source file
-2_output_an_image/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.i
-.PHONY : 2_output_an_image/main.cpp.i
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
 
-2_output_an_image/main.s: 2_output_an_image/main.cpp.s
-.PHONY : 2_output_an_image/main.s
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
 
 # target to generate assembly for a file
-2_output_an_image/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.s
-.PHONY : 2_output_an_image/main.cpp.s
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
 
 # Help Target
 help:
@@ -170,9 +170,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... inOneWeekend"
-	@echo "... 2_output_an_image/main.o"
-	@echo "... 2_output_an_image/main.i"
-	@echo "... 2_output_an_image/main.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
 .PHONY : help
 
 

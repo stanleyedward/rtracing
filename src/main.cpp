@@ -1,3 +1,4 @@
+#include "color.h"
 #include <iostream>
 
 int main() {
@@ -16,16 +17,9 @@ int main() {
               << std::flush;
     for (int j = 0; j < image_width; j++) {
       // convert to [0,1] -> float
-      auto r = float(i) / (image_width - 1);
-      auto g = 0.0;
-      auto b = float(j) / (image_height - 1);
-
-      // convert to [0, 255]
-      int ir = int(r * 255.999);
-      int ig = int(g * 255.999);
-      int ib = int(b * 255.999);
-
-      std::cout << ir << " " << ig << " " << ib << "\n";
+      auto pixel_color =
+          color(float(j) / (image_width - 1), 0, float(i) / (image_height - 1));
+      write_color(std::cout, pixel_color);
     }
   }
   std::clog << "\rDone.                        \n";

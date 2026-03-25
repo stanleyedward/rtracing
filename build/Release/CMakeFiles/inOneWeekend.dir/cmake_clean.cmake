@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/inOneWeekend.dir/link.d"
-  "CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o"
-  "CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o.d"
+  "CMakeFiles/inOneWeekend.dir/src/main.cpp.o"
+  "CMakeFiles/inOneWeekend.dir/src/main.cpp.o.d"
   "inOneWeekend"
   "inOneWeekend.pdb"
 )

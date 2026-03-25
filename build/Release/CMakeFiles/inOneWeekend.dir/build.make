@@ -72,28 +72,28 @@ include CMakeFiles/inOneWeekend.dir/flags.make
 CMakeFiles/inOneWeekend.dir/codegen:
 .PHONY : CMakeFiles/inOneWeekend.dir/codegen
 
-CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o: CMakeFiles/inOneWeekend.dir/flags.make
-CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o: /home/stanley/Documents/raytracing_in_one_weekend/2_output_an_image/main.cpp
-CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o: CMakeFiles/inOneWeekend.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/stanley/Documents/raytracing_in_one_weekend/build/Release/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o -MF CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o.d -o CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o -c /home/stanley/Documents/raytracing_in_one_weekend/2_output_an_image/main.cpp
+CMakeFiles/inOneWeekend.dir/src/main.cpp.o: CMakeFiles/inOneWeekend.dir/flags.make
+CMakeFiles/inOneWeekend.dir/src/main.cpp.o: /home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp
+CMakeFiles/inOneWeekend.dir/src/main.cpp.o: CMakeFiles/inOneWeekend.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/stanley/Documents/raytracing_in_one_weekend/build/Release/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/inOneWeekend.dir/src/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/inOneWeekend.dir/src/main.cpp.o -MF CMakeFiles/inOneWeekend.dir/src/main.cpp.o.d -o CMakeFiles/inOneWeekend.dir/src/main.cpp.o -c /home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp
 
-CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/stanley/Documents/raytracing_in_one_weekend/2_output_an_image/main.cpp > CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.i
+CMakeFiles/inOneWeekend.dir/src/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/inOneWeekend.dir/src/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp > CMakeFiles/inOneWeekend.dir/src/main.cpp.i
 
-CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/stanley/Documents/raytracing_in_one_weekend/2_output_an_image/main.cpp -o CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.s
+CMakeFiles/inOneWeekend.dir/src/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/inOneWeekend.dir/src/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp -o CMakeFiles/inOneWeekend.dir/src/main.cpp.s
 
 # Object files for target inOneWeekend
 inOneWeekend_OBJECTS = \
-"CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o"
+"CMakeFiles/inOneWeekend.dir/src/main.cpp.o"
 
 # External object files for target inOneWeekend
 inOneWeekend_EXTERNAL_OBJECTS =
 
-inOneWeekend: CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o
+inOneWeekend: CMakeFiles/inOneWeekend.dir/src/main.cpp.o
 inOneWeekend: CMakeFiles/inOneWeekend.dir/build.make
 inOneWeekend: CMakeFiles/inOneWeekend.dir/compiler_depend.ts
 inOneWeekend: CMakeFiles/inOneWeekend.dir/link.txt

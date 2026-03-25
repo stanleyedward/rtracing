@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/stanley/Documents/raytracing_in_one_weekend/2_output_an_image/main.cpp" "CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o" "gcc" "CMakeFiles/inOneWeekend.dir/2_output_an_image/main.cpp.o.d"
+  "/home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp" "CMakeFiles/inOneWeekend.dir/src/main.cpp.o" "gcc" "CMakeFiles/inOneWeekend.dir/src/main.cpp.o.d"
   "" "inOneWeekend" "gcc" "CMakeFiles/inOneWeekend.dir/link.d"
   )
 

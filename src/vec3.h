@@ -54,7 +54,6 @@ public:
 
 // point3 is just vec3, but useful for geometric clarity in the code.
 using point3 = vec3;
-using colors3 = vec3;
 
 // vec utility functions;
 
