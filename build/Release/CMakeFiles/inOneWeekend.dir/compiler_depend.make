@@ -3,6 +3,7 @@
 
 CMakeFiles/inOneWeekend.dir/src/main.cpp.o: /home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp \
   /home/stanley/Documents/raytracing_in_one_weekend/src/color.h \
+  /home/stanley/Documents/raytracing_in_one_weekend/src/ray.h \
   /home/stanley/Documents/raytracing_in_one_weekend/src/vec3.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/bitsperlong.h \
@@ -342,6 +343,10 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/c++/15.2.1/bits/stl_iterator.h:
 
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/c++/15.2.1/bits/std_abs.h:
+
 /usr/include/bits/types/__FILE.h:
 
 /usr/include/bits/types.h:
@@ -404,8 +409,6 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/bits/types/timer_t.h:
 
-/usr/include/bits/floatn.h:
-
 /usr/include/bits/types/error_t.h:
 
 /usr/include/c++/15.2.1/bits/requires_hosted.h:
@@ -418,16 +421,6 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/bits/types/__sigset_t.h:
 
-/usr/include/asm/posix_types.h:
-
-/usr/include/asm/posix_types_64.h:
-
-/usr/include/c++/15.2.1/bits/allocator.h:
-
-/usr/include/asm-generic/int-ll64.h:
-
-/usr/include/bits/mathcalls-macros.h:
-
 /usr/lib/libc_nonshared.a:
 
 /usr/include/c++/15.2.1/bits/basic_ios.h:
@@ -438,6 +431,8 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/bits/types/struct_FILE.h:
 
+/usr/include/bits/floatn.h:
+
 /usr/include/asm-generic/types.h:
 
 /usr/include/asm-generic/errno-base.h:
@@ -446,11 +441,17 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/asm-generic/errno.h:
 
+/usr/include/asm/posix_types.h:
+
+/usr/include/asm/posix_types_64.h:
+
+/usr/include/c++/15.2.1/bits/allocator.h:
+
+/usr/include/bits/mathcalls-macros.h:
+
+/usr/include/asm-generic/int-ll64.h:
+
 /usr/include/bits/locale.h:
-
-/usr/include/bits/atomic_wide_counter.h:
-
-/usr/include/bits/types/clockid_t.h:
 
 /usr/include/c++/15.2.1/bits/range_access.h:
 
@@ -459,6 +460,10 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 /usr/include/bits/timex.h:
 
 /usr/include/bits/errno.h:
+
+/usr/include/bits/atomic_wide_counter.h:
+
+/usr/include/bits/types/clockid_t.h:
 
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/ctype_base.h:
 
@@ -480,6 +485,10 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/bits/uintn-identity.h:
 
+/usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/error_constants.h:
+
+/usr/include/c++/15.2.1/bits/ostream.tcc:
+
 /usr/include/bits/byteswap.h:
 
 /home/stanley/Documents/raytracing_in_one_weekend/src/vec3.h:
@@ -487,10 +496,6 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 /usr/include/bits/types/FILE.h:
 
 /usr/include/bits/flt-eval-method.h:
-
-/usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/error_constants.h:
-
-/usr/include/c++/15.2.1/bits/ostream.tcc:
 
 /usr/include/features.h:
 
@@ -670,8 +675,6 @@ CMakeFiles/inOneWeekend.dir/src/main.cpp.o:
 
 /usr/include/c++/15.2.1/bits/streambuf.tcc:
 
+/home/stanley/Documents/raytracing_in_one_weekend/src/ray.h:
+
 /usr/include/c++/15.2.1/bits/refwrap.h:
-
-/usr/include/gnu/stubs-64.h:
-
-/usr/include/c++/15.2.1/bits/std_abs.h:

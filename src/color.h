@@ -6,6 +6,7 @@
 using color = vec3;
 
 void write_color(std::ostream &out, const color &pixel_color) {
+  // assumes the range [0, 1] for the color!
   auto r = pixel_color.x();
   auto g = pixel_color.y();
   auto b = pixel_color.z();

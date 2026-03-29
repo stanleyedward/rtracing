@@ -4,6 +4,7 @@
 CMakeFiles/inOneWeekend.dir/src/main.cpp.o
  /home/stanley/Documents/raytracing_in_one_weekend/src/main.cpp
  /home/stanley/Documents/raytracing_in_one_weekend/src/color.h
+ /home/stanley/Documents/raytracing_in_one_weekend/src/ray.h
  /home/stanley/Documents/raytracing_in_one_weekend/src/vec3.h
  /usr/include/alloca.h
  /usr/include/asm-generic/bitsperlong.h
