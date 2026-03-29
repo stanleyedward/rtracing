@@ -2,7 +2,16 @@
 #include "ray.h"
 #include <iostream>
 
-color compute_color(const ray &r) { return color(0., 0., 1.); }
+color compute_color(const ray &r) {
+  vec3 unit_vector_r = unit_vector(r.direction());
+  // go from [-1, 1] to [0, 1]
+  float a = (unit_vector_r.y() + 1.0) * 0.5;
+  color white(1., 1., 1.);
+  // color blue(0.5, 0.7, 1.0);
+  color blue(0., 0., 1.0);
+  color c = (1 - a) * white + a * blue;
+  return c;
+}
 
 int main() {
 
@@ -22,13 +31,14 @@ int main() {
   vec3 viewport_v = vec3(0., -viewport_height, 0.);
 
   // du, dv
-  vec3 pixel_delta_u = viewport_u / image_height;
-  vec3 pixel_delta_v = viewport_v / image_width;
+  vec3 pixel_delta_u = viewport_u / image_width;
+  vec3 pixel_delta_v = viewport_v / image_height;
 
   // get upper left pixel (0, 0)
   point3 viewport_upper_left = camera_center - vec3(0., 0., focal_length) -
                                0.5 * (viewport_v)-0.5 * (viewport_u);
-  point3 pixel_00_loc = (pixel_delta_u + pixel_delta_v) / 2;
+  point3 pixel_00_loc =
+      viewport_upper_left + ((pixel_delta_u + pixel_delta_v) / 2);
 
   // render the image
   std::string color_code = "P3";
@@ -40,7 +50,7 @@ int main() {
     for (int j = 0; j < image_width; j++) {
       point3 pixel_center =
           pixel_00_loc + (j * pixel_delta_u) + (i * pixel_delta_v);
-      vec3 ray_direction = vec3(camera_center - pixel_center);
+      vec3 ray_direction = vec3(pixel_center - camera_center);
       ray r = ray(camera_center, ray_direction);
       color pixel_color = compute_color(r);
       write_color(std::cout, pixel_color);
