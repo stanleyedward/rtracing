@@ -1,5 +1,5 @@
-#ifndef VEC_H
-#define VEC_H
+#ifndef RAY_H
+#define RAY_H
 
 #include "vec3.h"
 
@@ -16,7 +16,7 @@ public:
   const point3 &origin() const { return orig; }
   const vec3 &direction() const { return dir; }
 
-  point3 at(float t) { return orig + t * dir; }
+  point3 at(float t) const { return orig + t * dir; }
 };
 
 #endif

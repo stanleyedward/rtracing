@@ -7,8 +7,8 @@ color compute_color(const ray &r) {
   // go from [-1, 1] to [0, 1]
   float a = (unit_vector_r.y() + 1.0) * 0.5;
   color white(1., 1., 1.);
-  // color blue(0.5, 0.7, 1.0);
-  color blue(0., 0., 1.0);
+  color blue(0.5, 0.7, 1.0);
+  // color blue(0., 0., 1.0);
   color c = (1 - a) * white + a * blue;
   return c;
 }
@@ -21,7 +21,7 @@ int main() {
   image_height = image_height < 1 ? 1 : image_height;
 
   float viewport_height = 2.0;
-  float viewport_width = viewport_height * (float(image_width / image_height));
+  float viewport_width = viewport_height * (float(image_width) / image_height);
 
   float focal_length = 1.0;
   point3 camera_center = point3(0., 0., 0.);
