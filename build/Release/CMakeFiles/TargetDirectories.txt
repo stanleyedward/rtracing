@@ -1,3 +1,0 @@
-/home/stanley/Documents/raytracing_in_one_weekend/build/Release/CMakeFiles/inOneWeekend.dir
-/home/stanley/Documents/raytracing_in_one_weekend/build/Release/CMakeFiles/edit_cache.dir
-/home/stanley/Documents/raytracing_in_one_weekend/build/Release/CMakeFiles/rebuild_cache.dir

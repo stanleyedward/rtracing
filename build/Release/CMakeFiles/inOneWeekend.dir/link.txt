@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/inOneWeekend.dir/link.d CMakeFiles/inOneWeekend.dir/src/main.cpp.o -o inOneWeekend
