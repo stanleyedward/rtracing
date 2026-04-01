@@ -2,7 +2,21 @@
 #include "ray.h"
 #include <iostream>
 
+bool hit_sphere(const point3 &center, float radius, const ray &r) {
+  vec3 center_minus_point = center - r.origin();
+  float a = dot(r.direction(), r.direction());
+  float b = -2.0 * dot(r.direction(), center_minus_point);
+  float c = dot(center_minus_point, center_minus_point) - (radius * radius);
+
+  float discriminant = (b * b) - 4 * a * c;
+
+  return (discriminant >= 0);
+}
+
 color compute_color(const ray &r) {
+  if (hit_sphere(point3(0.0, 0.0, -1), 0.5, r)) {
+    return color(1.0, 0.0, 0.0);
+  }
   vec3 unit_vector_r = unit_vector(r.direction());
   // go from [-1, 1] to [0, 1]
   float a = (unit_vector_r.y() + 1.0) * 0.5;
