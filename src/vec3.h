@@ -66,6 +66,12 @@ inline vec3 operator+(const vec3 &v, const vec3 &u) {
   return vec3(v.e[0] + u.e[0], v.e[1] + u.e[1], v.e[2] + u.e[2]);
 }
 
+inline vec3 operator+(const vec3 &v, float t) {
+  return vec3(v.e[0] + t, v.e[1] + t, v.e[2] + t);
+}
+
+inline vec3 operator+(float t, const vec3 &v) { return v + t; }
+
 inline vec3 operator-(const vec3 &v, const vec3 &u) {
   return vec3(v.e[0] - u.e[0], v.e[1] - u.e[1], v.e[2] - u.e[2]);
 }

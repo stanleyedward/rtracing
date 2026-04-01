@@ -2,21 +2,38 @@
 #include "ray.h"
 #include <iostream>
 
-bool hit_sphere(const point3 &center, float radius, const ray &r) {
+float hit_sphere(const point3 &center, float radius, const ray &r) {
   vec3 center_minus_point = center - r.origin();
   float a = dot(r.direction(), r.direction());
-  float b = -2.0 * dot(r.direction(), center_minus_point);
+  // float b = -2.0 * dot(r.direction(), center_minus_point); using
+  // simplification
+  float h = dot(r.direction(), center_minus_point);
   float c = dot(center_minus_point, center_minus_point) - (radius * radius);
 
-  float discriminant = (b * b) - 4 * a * c;
+  float discriminant = (h * h) - a * c;
 
-  return (discriminant >= 0);
+  if (discriminant < 0.0) {
+    return -1.0;
+  }
+  // float t = (-b - std::sqrt(discriminant)) / (2.0 * a); simplify
+  float t = (h - std::sqrt(discriminant)) / a;
+  return t;
 }
 
 color compute_color(const ray &r) {
-  if (hit_sphere(point3(0.0, 0.0, -1), 0.5, r)) {
-    return color(1.0, 0.0, 0.0);
+  point3 sphere_center(0.0, 0.0, -1.0);
+  float radius = 0.5;
+  float t = hit_sphere(sphere_center, radius, r);
+
+  if (t > 0.0) {
+    point3 intersection_point = r.at(t);
+    vec3 intersection_normal = unit_vector(intersection_point - sphere_center);
+    color color_normal =
+        0.5 * color(intersection_normal +
+                    1.0f); // inter_normal range [-1, 1] -> [0, 1]
+    return color_normal;
   }
+
   vec3 unit_vector_r = unit_vector(r.direction());
   // go from [-1, 1] to [0, 1]
   float a = (unit_vector_r.y() + 1.0) * 0.5;
