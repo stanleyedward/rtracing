@@ -1,37 +1,16 @@
-#include "color.h"
-#include "ray.h"
-#include <iostream>
+#include "common.h"
 
-float hit_sphere(const point3 &center, float radius, const ray &r) {
-  vec3 center_minus_point = center - r.origin();
-  float a = dot(r.direction(), r.direction());
-  // float b = -2.0 * dot(r.direction(), center_minus_point); using
-  // simplification
-  float h = dot(r.direction(), center_minus_point);
-  float c = dot(center_minus_point, center_minus_point) - (radius * radius);
+#include "hittable.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
-  float discriminant = (h * h) - a * c;
+color ray_color(const ray &r, const hittable &world) {
 
-  if (discriminant < 0.0) {
-    return -1.0;
-  }
-  // float t = (-b - std::sqrt(discriminant)) / (2.0 * a); simplify
-  float t = (h - std::sqrt(discriminant)) / a;
-  return t;
-}
-
-color compute_color(const ray &r) {
-  point3 sphere_center(0.0, 0.0, -1.0);
-  float radius = 0.5;
-  float t = hit_sphere(sphere_center, radius, r);
-
-  if (t > 0.0) {
-    point3 intersection_point = r.at(t);
-    vec3 intersection_normal = unit_vector(intersection_point - sphere_center);
-    color color_normal =
-        0.5 * color(intersection_normal +
-                    1.0f); // inter_normal range [-1, 1] -> [0, 1]
-    return color_normal;
+  hit_record record;
+  if (world.hit(r, interval(0, infinity), record)) {
+    // turn normals from [-1, +1] -> [0,1] for coloring
+    color normal_color = color(0.5 * (record.normal + 1));
+    return normal_color;
   }
 
   vec3 unit_vector_r = unit_vector(r.direction());
@@ -39,7 +18,6 @@ color compute_color(const ray &r) {
   float a = (unit_vector_r.y() + 1.0) * 0.5;
   color white(1., 1., 1.);
   color blue(0.5, 0.7, 1.0);
-  // color blue(0., 0., 1.0);
   color c = (1 - a) * white + a * blue;
   return c;
 }
@@ -50,6 +28,11 @@ int main() {
   float aspect_ratio = 16.0 / 9.0;
   int image_height = int(image_width / aspect_ratio);
   image_height = image_height < 1 ? 1 : image_height;
+
+  // world
+  hittable_list world;
+  world.add(make_shared<sphere>(point3(0.0f, 0.0f, -1.0f), 0.5));
+  world.add(make_shared<sphere>(point3(0.0f, -100.5f, -1.0f), 100.0f));
 
   float viewport_height = 2.0;
   float viewport_width = viewport_height * (float(image_width) / image_height);
@@ -83,7 +66,7 @@ int main() {
           pixel_00_loc + (j * pixel_delta_u) + (i * pixel_delta_v);
       vec3 ray_direction = vec3(pixel_center - camera_center);
       ray r = ray(camera_center, ray_direction);
-      color pixel_color = compute_color(r);
+      color pixel_color = ray_color(r, world);
       write_color(std::cout, pixel_color);
     }
   }

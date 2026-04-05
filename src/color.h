@@ -1,7 +1,7 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "vec3.h"
+#include "vec3.h" //removing brakes it xd but the turning off clang-formatting in common.h fixed it
 
 using color = vec3;
 
