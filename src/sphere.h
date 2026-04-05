@@ -35,7 +35,8 @@ class sphere : public hittable {
             
             record.t = root;
             record.p = r.at(root);
-            record.normal = (record.p - center) / radius;
+            vec3 normal = (record.p - center) / radius;
+            record.set_face_normal(r, normal); //stores normal and if ray is from inside or outside inside record
             
             return true;
         }
