@@ -1,6 +1,9 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
+#include <limits>
+inline const float infinity = std::numeric_limits<float>::infinity();
+
 class interval {
 public:
   float min, max;
