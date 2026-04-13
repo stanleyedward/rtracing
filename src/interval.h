@@ -17,6 +17,14 @@ public:
 
   bool surrounds(float t) const { return (min < t && t < max); }
 
+  float clamp(float x) const {
+    if (x < min)
+      return min;
+    if (x > max)
+      return max;
+    return x;
+  }
+
   static const interval empty, universe;
 };
 

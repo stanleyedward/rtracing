@@ -10,16 +10,17 @@ private:
   point3 pixel_00_loc;
   vec3 pixel_delta_u;
   vec3 pixel_delta_v;
+  float pixel_sample_scale;
 
   void initialize() {
     image_height = int(image_width / aspect_ratio);
     image_height = image_height < 1 ? 1 : image_height;
 
+    pixel_sample_scale = 1.0 / samples_per_pixel;
+
     float viewport_height = 2.0;
     float viewport_width =
         viewport_height * (float(image_width) / image_height);
-
-    float focal_length = 1.0f;
 
     // viewport vectors
     vec3 viewport_u = vec3(viewport_width, 0., 0.);
@@ -52,10 +53,30 @@ private:
     return c;
   }
 
+  ray get_ray(int i, int j) const {
+    // gives us a camera ray from camera origin directed at randomly sampled
+    // point around the viewport pixel location i,j.
+
+    vec3 offset = sample_square();
+    point3 pixel_sample = pixel_00_loc + ((i + offset.x()) * pixel_delta_u) +
+                          ((j + offset.y()) * pixel_delta_v);
+    point3 ray_origin = camera_center;
+    vec3 ray_direction = pixel_sample - ray_origin;
+    return ray(ray_origin, ray_direction);
+  }
+
+  vec3 sample_square() const {
+    // returns a vector to a random point in the [-0.5, -0.5] to [+0.5, +0.5]
+    // unit square space.
+    return vec3(random_float() - 0.5, random_float() - 0.5, 0.0);
+  }
+
 public:
   int image_width = 300;
   float aspect_ratio = 1.0;
   point3 camera_center = point3(0.0, 0.0, 0.0);
+  float focal_length = 1.0f;
+  int samples_per_pixel = 10;
 
   void render(const hittable &world) {
     initialize();
@@ -68,12 +89,19 @@ public:
       std::clog << "\rScanlines remaining: " << (image_height - i) << " "
                 << std::flush;
       for (int j = 0; j < image_width; j++) {
-        point3 pixel_center =
-            pixel_00_loc + (j * pixel_delta_u) + (i * pixel_delta_v);
-        vec3 ray_direction = vec3(pixel_center - camera_center);
-        ray r = ray(camera_center, ray_direction);
-        color pixel_color = ray_color(r, world);
-        write_color(std::cout, pixel_color);
+        // point3 pixel_center =
+        //     pixel_00_loc + (j * pixel_delta_u) + (i * pixel_delta_v);
+        // vec3 ray_direction = vec3(pixel_center - camera_center);
+        // ray r = ray(camera_center, ray_direction);
+        // color pixel_color = ray_color(r, world);
+        // write_color(std::cout, pixel_color);
+
+        color pixel_color(0., 0., 0.);
+        for (int sample = 0; sample < samples_per_pixel; sample++) {
+          ray r = get_ray(j, i);
+          pixel_color += ray_color(r, world);
+        }
+        write_color(std::cout, pixel_color * pixel_sample_scale);
       }
     }
     std::clog << "\rDone.                        \n";
