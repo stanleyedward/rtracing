@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include "hittable.h"
+#include "vec3.h"
+#include <cstdlib>
 
 class camera {
 private:
@@ -36,12 +38,17 @@ private:
     pixel_00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) / 2);
   }
 
-  color ray_color(const ray &r, const hittable &world) {
+  color ray_color(const ray &r, const hittable &world, int depth) {
+    if (depth <= 0) {
+      return color(0., 0., 0.);
+    }
+
     hit_record record;
-    if (world.hit(r, interval(0, infinity), record)) {
-      // turn normals from [-1, +1] -> [0,1] for coloring
-      color normal_color = color(0.5 * (record.normal + 1));
-      return normal_color;
+    if (world.hit(r, interval(0.001, infinity), record)) {
+      vec3 lambertian_direction = record.normal + random_unit_vector();
+      color col =
+          ray_color(ray(record.p, lambertian_direction), world, depth - 1);
+      return 0.5 * col;
     }
 
     vec3 unit_vector_r = unit_vector(r.direction());
@@ -56,7 +63,6 @@ private:
   ray get_ray(int i, int j) const {
     // gives us a camera ray from camera origin directed at randomly sampled
     // point around the viewport pixel location i,j.
-
     vec3 offset = sample_square();
     point3 pixel_sample = pixel_00_loc + ((i + offset.x()) * pixel_delta_u) +
                           ((j + offset.y()) * pixel_delta_v);
@@ -76,7 +82,9 @@ public:
   float aspect_ratio = 1.0;
   point3 camera_center = point3(0.0, 0.0, 0.0);
   float focal_length = 1.0f;
-  int samples_per_pixel = 10;
+  int samples_per_pixel =
+      10;             // count of random sampled per pixel for anti aliasing
+  int max_depth = 10; // max num of ray bounces
 
   void render(const hittable &world) {
     initialize();
@@ -89,17 +97,10 @@ public:
       std::clog << "\rScanlines remaining: " << (image_height - i) << " "
                 << std::flush;
       for (int j = 0; j < image_width; j++) {
-        // point3 pixel_center =
-        //     pixel_00_loc + (j * pixel_delta_u) + (i * pixel_delta_v);
-        // vec3 ray_direction = vec3(pixel_center - camera_center);
-        // ray r = ray(camera_center, ray_direction);
-        // color pixel_color = ray_color(r, world);
-        // write_color(std::cout, pixel_color);
-
         color pixel_color(0., 0., 0.);
         for (int sample = 0; sample < samples_per_pixel; sample++) {
           ray r = get_ray(j, i);
-          pixel_color += ray_color(r, world);
+          pixel_color += ray_color(r, world, max_depth);
         }
         write_color(std::cout, pixel_color * pixel_sample_scale);
       }

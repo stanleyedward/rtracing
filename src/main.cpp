@@ -9,12 +9,12 @@
 int main() {
 
   camera cam;
-  cam.image_width = 500;
+  cam.image_width = 800;
   cam.aspect_ratio = 16.0 / 9.0;
   cam.camera_center = point3(0.f, 0.f, 0.f);
   cam.focal_length = 1.0f;
-  //anti-alias
-  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+  cam.samples_per_pixel = 100; // anti-alias
 
   // world
   hittable_list world;

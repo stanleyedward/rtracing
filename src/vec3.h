@@ -2,6 +2,7 @@
 #define VEC3_H
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 
 class vec3 {
@@ -50,6 +51,15 @@ public:
   }
 
   float length() const { return std::sqrt(length_squared()); }
+
+  static vec3 random() {
+    return vec3(random_float(), random_float(), random_float());
+  }
+
+  static vec3 random(float min, float max) {
+    return vec3(random_float(min, max), random_float(min, max),
+                random_float(min, max));
+  }
 };
 
 // point3 is just vec3, but useful for geometric clarity in the code.
@@ -103,5 +113,23 @@ inline vec3 cross(const vec3 &u, const vec3 &v) {
 }
 
 inline vec3 unit_vector(const vec3 &v) { return v / v.length(); }
+
+inline vec3 random_unit_vector() {
+  while (true) {
+    vec3 p = vec3::random(-1, 1); // cube-like
+    float lensq = p.length_squared();
+    if (1e-20 < lensq && lensq <= 1) { // ensure inside sphere
+      return p / fsqrt(lensq);
+    }
+  }
+}
+
+inline vec3 random_on_hemisphere(const vec3 &normal) {
+  vec3 on_unit_sphere = random_unit_vector();
+  if (dot(normal, on_unit_sphere) > 0.f) {
+    return on_unit_sphere;
+  } else
+    return -on_unit_sphere;
+}
 
 #endif
