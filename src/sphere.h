@@ -1,8 +1,10 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "common.h"
 #include "hittable.h"
 #include "interval.h"
+#include <memory>
 
 class sphere : public hittable {
 private:
@@ -12,9 +14,8 @@ private:
 
 public:
   // sphere constructor
-  sphere(const point3 &p, float r) : center(p), radius(std::fmax(0.0, r)) {
-    // TODO initialize the material pointer mat;
-  }
+  sphere(const point3 &p, float r, std::shared_ptr<material> mat)
+      : center(p), radius(std::fmax(0.0, r)), mat(mat) {}
 
   bool hit(const ray &r, interval ray_t, hit_record &record) const override {
     vec3 center_minus_point = center - r.origin();

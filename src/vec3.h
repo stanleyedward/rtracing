@@ -60,6 +60,12 @@ public:
     return vec3(random_float(min, max), random_float(min, max),
                 random_float(min, max));
   }
+
+  bool near_zero() const {
+    float s = 1e-8;
+    return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) &&
+           (std::fabs(e[2]) < s);
+  }
 };
 
 // point3 is just vec3, but useful for geometric clarity in the code.
@@ -118,7 +124,7 @@ inline vec3 random_unit_vector() {
   while (true) {
     vec3 p = vec3::random(-1, 1); // cube-like
     float lensq = p.length_squared();
-    if (1e-20 < lensq && lensq <= 1) { // ensure inside sphere
+    if (1e-20 < lensq && lensq <= 1) { // ensure inside sphere // edge
       return p / sqrtf(lensq);
     }
   }
@@ -130,6 +136,11 @@ inline vec3 random_on_hemisphere(const vec3 &normal) {
     return on_unit_sphere;
   } else
     return -on_unit_sphere;
+}
+
+inline vec3 reflect(const vec3 &v, const vec3 &normal) {
+  vec3 b = -dot(v, normal) * normal;
+  return v + 2 * b;
 }
 
 #endif

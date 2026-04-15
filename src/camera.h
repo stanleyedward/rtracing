@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "hittable.h"
+#include "material.h"
 #include "vec3.h"
 #include <cstdlib>
 
@@ -42,13 +43,15 @@ private:
     if (depth <= 0) {
       return color(0., 0., 0.);
     }
-
     hit_record record;
-    if (world.hit(r, interval(0.001, infinity), record)) {
-      vec3 direction = record.normal + random_unit_vector(); // lambertian
-      // vec3 direction = random_on_hemisphere(record.normal);
-      color col = ray_color(ray(record.p, direction), world, depth - 1);
-      return 0.5 * col;
+
+    if (world.hit(r, interval(0.001, infinity), record)) { // edge
+      ray scattered;
+      color attenuation;
+      if (record.mat->scatter(r, record, attenuation, scattered)) {
+        return attenuation * ray_color(scattered, world, depth - 1);
+      }
+      return color(0., 0., 0.);
     }
 
     vec3 unit_vector_r = unit_vector(r.direction());
