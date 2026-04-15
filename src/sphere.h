@@ -8,10 +8,13 @@ class sphere : public hittable {
 private:
   point3 center;
   float radius;
+  shared_ptr<material> mat;
 
 public:
   // sphere constructor
-  sphere(const point3 &p, float r) : center(p), radius(std::fmax(0.0, r)) {}
+  sphere(const point3 &p, float r) : center(p), radius(std::fmax(0.0, r)) {
+    // TODO initialize the material pointer mat;
+  }
 
   bool hit(const ray &r, interval ray_t, hit_record &record) const override {
     vec3 center_minus_point = center - r.origin();
@@ -35,6 +38,7 @@ public:
 
     record.t = root;
     record.p = r.at(root);
+    record.mat = mat;
     vec3 normal = (record.p - center) / radius;
     record.set_face_normal(r, normal); // stores normal and if ray is from
                                        // inside or outside inside record

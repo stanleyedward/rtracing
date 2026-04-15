@@ -45,9 +45,9 @@ private:
 
     hit_record record;
     if (world.hit(r, interval(0.001, infinity), record)) {
-      vec3 lambertian_direction = record.normal + random_unit_vector();
-      color col =
-          ray_color(ray(record.p, lambertian_direction), world, depth - 1);
+      vec3 direction = record.normal + random_unit_vector(); // lambertian
+      // vec3 direction = random_on_hemisphere(record.normal);
+      color col = ray_color(ray(record.p, direction), world, depth - 1);
       return 0.5 * col;
     }
 

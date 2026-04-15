@@ -4,12 +4,15 @@
 #include "interval.h"
 #include "ray.h"
 
+class material; // forward declaration;
+
 class hit_record {
 public:
   point3 p;
   float t;
   vec3 normal;
   bool front_face;
+  shared_ptr<material> mat;
 
   void set_face_normal(const ray &r, vec3 &outward_normal) {
     front_face = (dot(r.direction(), outward_normal) < 0.0);

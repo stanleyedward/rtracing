@@ -119,7 +119,7 @@ inline vec3 random_unit_vector() {
     vec3 p = vec3::random(-1, 1); // cube-like
     float lensq = p.length_squared();
     if (1e-20 < lensq && lensq <= 1) { // ensure inside sphere
-      return p / fsqrt(lensq);
+      return p / sqrtf(lensq);
     }
   }
 }
