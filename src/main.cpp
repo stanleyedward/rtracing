@@ -13,7 +13,7 @@ int main() {
   camera cam;
   cam.image_width = 800;
   cam.aspect_ratio = 16.0 / 9.0;
-  cam.camera_center = point3(0.75f, 0.f, 0.f);
+  cam.camera_center = point3(0.0f, 0.f, 0.f);
   cam.focal_length = 1.0f;
   cam.max_depth = 50;
   cam.samples_per_pixel = 100; // anti-alias
@@ -24,9 +24,9 @@ int main() {
   shared_ptr<material> material_center =
       std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
   shared_ptr<material> material_left =
-      std::make_shared<metal>(color(0.8, 0.8, 0.8));
+      std::make_shared<metal>(color(0.8, 0.8, 0.8), 0.5);
   shared_ptr<material> material_right =
-      std::make_shared<metal>(color(0.8, 0.6, 0.2));
+      std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.1);
 
   // world
   hittable_list world;
