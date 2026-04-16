@@ -53,4 +53,40 @@ private:
   float fuzz;
 };
 
+class dielectric : public material {
+public:
+  dielectric(float refractive_index) : refractive_index(refractive_index) {}
+  bool scatter(const ray &r_in, const hit_record &record, color &attenuation,
+               ray &scattered) const override {
+    attenuation = color(1.0, 1.0, 1.0);
+    float ri = record.front_face ? (1.0 / refractive_index) : refractive_index;
+
+    vec3 unit_direction =
+        unit_vector(r_in.direction()); // has to be unit to give us cos(theta)
+    float cos_theta = std::fmin(dot(-unit_direction, record.normal), 1.0);
+    float sin_theta = std::sqrt(1 - cos_theta * cos_theta);
+
+    bool cannot_refract = ri * sin_theta > 1.0;
+    vec3 direction;
+
+    if (cannot_refract || reflectance(cos_theta, ri) >
+                              random_float()) { // total internal reflection
+      direction = reflect(unit_direction, record.normal);
+    } else {
+      direction = refract(unit_direction, record.normal, ri);
+    }
+    scattered = ray(record.p, direction);
+    return true;
+  }
+
+private:
+  float refractive_index;
+
+  static float reflectance(float cos_theta, float refractive_index) {
+    // schlick approximation for refl
+    float r0 = (1 - refractive_index) / (1 + refractive_index);
+    r0 = r0 * r0;
+    return r0 + (1 - r0) * std::pow((1 - cos_theta), 5);
+  }
+};
 #endif
