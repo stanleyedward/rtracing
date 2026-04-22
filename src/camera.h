@@ -14,6 +14,7 @@ private:
   vec3 pixel_delta_u;
   vec3 pixel_delta_v;
   float pixel_sample_scale;
+  vec3 v, u, w;
 
   void initialize() {
     image_height = int(image_width / aspect_ratio);
@@ -21,20 +22,30 @@ private:
 
     pixel_sample_scale = 1.0 / samples_per_pixel;
 
-    float viewport_height = 2.0;
+    camera_center = lookfrom;
+    float focal_length = (lookat - lookfrom).length();
+
+    float theta = degree_to_radian(vFov);
+    float h = std::tan(theta / 2);
+    float viewport_height = 2.0 * h * focal_length;
     float viewport_width =
         viewport_height * (float(image_width) / image_height);
 
+    // camera basis vectors for the camera coord frame
+    w = unit_vector(lookfrom - lookat);
+    u = unit_vector(cross(vUp, w));
+    v = cross(w, u);
+
     // viewport vectors
-    vec3 viewport_u = vec3(viewport_width, 0., 0.);
-    vec3 viewport_v = vec3(0., -viewport_height, 0.);
+    vec3 viewport_u = viewport_width * u;
+    vec3 viewport_v = viewport_height * -v;
 
     // du, dv
     pixel_delta_u = viewport_u / image_width;
     pixel_delta_v = viewport_v / image_height;
 
     // get upper left pixel (0, 0)
-    point3 viewport_upper_left = camera_center - vec3(0., 0., focal_length) -
+    point3 viewport_upper_left = camera_center - (focal_length * w) -
                                  0.5 * (viewport_v)-0.5 * (viewport_u);
     pixel_00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) / 2);
   }
@@ -88,6 +99,12 @@ public:
   int samples_per_pixel =
       10;             // count of random sampled per pixel for anti aliasing
   int max_depth = 10; // max num of ray bounces
+  float vFov = 90.0f; // vertical field of view
+
+  // camera pos
+  point3 lookat = point3(0.f, 0.f, -1.f);
+  point3 lookfrom = point3(0, 0, 0);
+  vec3 vUp = vec3(0, 1, 0);
 
   void render(const hittable &world) {
     initialize();
