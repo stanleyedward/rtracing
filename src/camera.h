@@ -15,6 +15,8 @@ private:
   vec3 pixel_delta_v;
   float pixel_sample_scale;
   vec3 v, u, w;
+  vec3 defocus_disk_u;
+  vec3 defocus_disk_v;
 
   void initialize() {
     image_height = int(image_width / aspect_ratio);
@@ -23,11 +25,10 @@ private:
     pixel_sample_scale = 1.0 / samples_per_pixel;
 
     camera_center = lookfrom;
-    float focal_length = (lookat - lookfrom).length();
-
+    // float focal_length = (lookat - lookfrom).length();
     float theta = degree_to_radian(vFov);
     float h = std::tan(theta / 2);
-    float viewport_height = 2.0 * h * focal_length;
+    float viewport_height = 2.0 * h * focus_distance;
     float viewport_width =
         viewport_height * (float(image_width) / image_height);
 
@@ -45,9 +46,15 @@ private:
     pixel_delta_v = viewport_v / image_height;
 
     // get upper left pixel (0, 0)
-    point3 viewport_upper_left = camera_center - (focal_length * w) -
+    point3 viewport_upper_left = camera_center - (focus_distance * w) -
                                  0.5 * (viewport_v)-0.5 * (viewport_u);
     pixel_00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) / 2);
+
+    // camera defocus disk
+    float defocus_radius =
+        focus_distance * std::tan(degree_to_radian(defocus_angle / 2));
+    defocus_disk_u = u * defocus_radius;
+    defocus_disk_v = v * defocus_radius;
   }
 
   color ray_color(const ray &r, const hittable &world, int depth) {
@@ -75,14 +82,21 @@ private:
   }
 
   ray get_ray(int i, int j) const {
-    // gives us a camera ray from camera origin directed at randomly sampled
+    // gives us a camera ray from defocus disk directed at randomly sampled
     // point around the viewport pixel location i,j.
     vec3 offset = sample_square();
     point3 pixel_sample = pixel_00_loc + ((i + offset.x()) * pixel_delta_u) +
                           ((j + offset.y()) * pixel_delta_v);
-    point3 ray_origin = camera_center;
+    // point3 ray_origin = camera_center;
+    point3 ray_origin =
+        (defocus_angle <= 0.0) ? camera_center : defocus_disk_sample();
     vec3 ray_direction = pixel_sample - ray_origin;
     return ray(ray_origin, ray_direction);
+  }
+
+  point3 defocus_disk_sample() const {
+    point3 p = random_in_unit_disk();
+    return camera_center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
   }
 
   vec3 sample_square() const {
@@ -95,7 +109,7 @@ public:
   int image_width = 300;
   float aspect_ratio = 1.0;
   point3 camera_center = point3(0.0, 0.0, 0.0);
-  float focal_length = 1.0f;
+  // camera to lens
   int samples_per_pixel =
       10;             // count of random sampled per pixel for anti aliasing
   int max_depth = 10; // max num of ray bounces
@@ -106,6 +120,10 @@ public:
   point3 lookfrom = point3(0, 0, 0);
   vec3 vUp = vec3(0, 1, 0);
 
+  // focus
+  float defocus_angle = 0.0;
+  float focus_distance = 10.0; // distance from lens to focal plane in real
+                               // world
   void render(const hittable &world) {
     initialize();
 

@@ -14,13 +14,14 @@ int main() {
   cam.image_width = 800;
   cam.aspect_ratio = 16.0 / 9.0;
   cam.camera_center = point3(0.0f, 0.f, 0.f);
-  cam.focal_length = 1.0f;
   cam.max_depth = 50;
   cam.samples_per_pixel = 100; // anti-alias, other stuff as well now
-  cam.vFov = 90.0f;
+  cam.vFov = 20.0f;
   cam.lookfrom = point3(-2, 2, 1);
   cam.lookat = point3(0, 0, -1);
   cam.vUp = vec3(0, 1, 0);
+  cam.defocus_angle = 10.0;
+  cam.focus_distance = 3.4;
 
   // world
   hittable_list world;
