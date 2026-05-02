@@ -31,8 +31,8 @@ inline float random_float(float min, float max) {
 
 // clang-format off
 #include "vec3.h"
-#include "color.h"
 #include "ray.h"
+#include "color.h"
 #include "interval.h"
 // clang-format on
 
