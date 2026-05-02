@@ -15,7 +15,7 @@
 int main() {
 
   camera cam;
-  cam.image_width = 800;
+  cam.image_width = 600;
   cam.aspect_ratio = 16.0 / 9.0;
   cam.camera_center = point3(0.0f, 0.f, 0.f);
   cam.max_depth = 50;
@@ -49,7 +49,7 @@ int main() {
           world.add(make_shared<sphere>(center, 0.2, sphere_material));
         }
 
-        else if (choose_mat < 0.95) { // metak
+        else if (choose_mat < 0.95) { // metal
           color albedo = vec3::random(0.5, 1);
           float fuzz = random_float(0, 0.5);
           sphere_material = make_shared<metal>(albedo, fuzz);
