@@ -7,11 +7,16 @@ class ray {
 private:
   point3 orig;
   vec3 dir;
+  float tm;
 
 public:
   ray() {}
+  ray(const point3 &origin, const vec3 &direction, float time)
+      : orig(origin), dir(direction), tm(time) {}
   ray(const point3 &origin, const vec3 &direction)
-      : orig(origin), dir(direction) {}
+      : ray(origin, direction, 0) {}
+
+  float time() const { return tm; }
 
   const point3 &origin() const { return orig; }
   const vec3 &direction() const { return dir; }

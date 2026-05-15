@@ -91,7 +91,8 @@ private:
     point3 ray_origin =
         (defocus_angle <= 0.0) ? camera_center : defocus_disk_sample();
     vec3 ray_direction = pixel_sample - ray_origin;
-    return ray(ray_origin, ray_direction);
+    float ray_time = random_float();
+    return ray(ray_origin, ray_direction, ray_time);
   }
 
   point3 defocus_disk_sample() const {

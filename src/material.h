@@ -25,7 +25,7 @@ public:
     if (lambertian_scatttered_direction.near_zero()) { // edge
       lambertian_scatttered_direction = record.normal;
     }
-    scattered = ray(record.p, lambertian_scatttered_direction);
+    scattered = ray(record.p, lambertian_scatttered_direction, r_in.time());
     attenuation = albedo;
     return true;
   }
@@ -43,7 +43,7 @@ public:
     vec3 reflected = reflect(r_in.direction(), record.normal);
     reflected =
         unit_vector(reflected) + (fuzz * random_unit_vector()); // add fuzz
-    scattered = ray(record.p, reflected);
+    scattered = ray(record.p, reflected, r_in.time());
     attenuation = albedo;
     return (dot(scattered.direction(), record.normal) > 0);
   }
@@ -75,7 +75,7 @@ public:
     } else {
       direction = refract(unit_direction, record.normal, ri);
     }
-    scattered = ray(record.p, direction);
+    scattered = ray(record.p, direction, r_in.time());
     return true;
   }
 

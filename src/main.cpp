@@ -15,11 +15,11 @@
 int main() {
 
   camera cam;
-  cam.image_width = 600;
+  cam.image_width = 400;
   cam.aspect_ratio = 16.0 / 9.0;
   cam.camera_center = point3(0.0f, 0.f, 0.f);
   cam.max_depth = 50;
-  cam.samples_per_pixel = 50; // anti-alias, other stuff as well now
+  cam.samples_per_pixel = 100; // anti-alias, other stuff as well now
   cam.vFov = 20.0f;
 
   cam.lookfrom = point3(13, 2, 3);
@@ -46,7 +46,8 @@ int main() {
         if (choose_mat < 0.8) { // diffuse/lambertian
           color albedo = vec3::random() * vec3::random();
           sphere_material = make_shared<lambertian>(albedo);
-          world.add(make_shared<sphere>(center, 0.2, sphere_material));
+          point3 center2 = center + vec3(0, random_float(0, 0.5), 0);
+          world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
         }
 
         else if (choose_mat < 0.95) { // metal
