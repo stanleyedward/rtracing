@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "vec3.h"
 #include <memory>
+#include <chrono>
 // clang-format on
 
 int main() {
@@ -79,5 +80,12 @@ int main() {
 
   world = hittable_list(make_shared<bvh_node>(world));
 
+  auto start = std::chrono::high_resolution_clock::now();
   cam.render(world);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::clog << "Total: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms\n";
 }
