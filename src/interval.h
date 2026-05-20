@@ -10,12 +10,21 @@ public:
 
   interval() : min(+infinity), max(-infinity) {}
   interval(float rayT_min, float rayT_max) : min(rayT_min), max(rayT_max) {}
+  interval(const interval& a, const interval& b){
+    min = a.min <= b.min ? a.min : b.min;
+    max = a.max <= b.max ? a.max : b.max;
+  }
 
   float size() const { return max - min; }
 
   bool contains(float t) const { return (min <= t && t <= max); }
 
   bool surrounds(float t) const { return (min < t && t < max); }
+
+  interval expand(float epsilon) const {
+    float padding = epsilon / 2;
+    return interval(min - padding, max + padding);
+  }
 
   float clamp(float x) const {
     if (x < min)
