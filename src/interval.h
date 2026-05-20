@@ -10,9 +10,9 @@ public:
 
   interval() : min(+infinity), max(-infinity) {}
   interval(float rayT_min, float rayT_max) : min(rayT_min), max(rayT_max) {}
-  interval(const interval& a, const interval& b){
+  interval(const interval &a, const interval &b) {
     min = a.min <= b.min ? a.min : b.min;
-    max = a.max <= b.max ? a.max : b.max;
+    max = a.max >= b.max ? a.max : b.max;
   }
 
   float size() const { return max - min; }

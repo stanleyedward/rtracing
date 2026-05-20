@@ -13,6 +13,7 @@ using std::shared_ptr;
 class hittable_list : public hittable {
 private:
   aabb bbox;
+
 public:
   std::vector<shared_ptr<hittable>> objects;
 
