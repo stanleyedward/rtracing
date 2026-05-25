@@ -15,6 +15,27 @@
 #include "texture.h"
 // clang-format on
 
+void earth() {
+  shared_ptr<texture> earth_tex = make_shared<image_texture>("earthmap.jpg");
+  shared_ptr<material> earth_surface = make_shared<lambertian>(earth_tex);
+  shared_ptr<hittable> globe =
+      make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
+
+  camera cam;
+
+  cam.aspect_ratio = 16.0 / 9;
+  cam.image_width = 1200;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+
+  cam.vFov = 20;
+  cam.lookfrom = point3(0, 0, -12);
+  cam.lookat = point3(0, 0, 0);
+  cam.vUp = vec3(0, 1, 0);
+  cam.defocus_angle = 0;
+  cam.render(hittable_list(globe));
+}
+
 void checkered_spheres() {
   hittable_list world;
   shared_ptr<texture> checker = make_shared<checker_texture>(
@@ -26,14 +47,14 @@ void checkered_spheres() {
                                 make_shared<lambertian>(checker)));
 
   camera cam;
-  cam.aspect_ratio = 16 / 9.0;
+  cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 400;
   cam.samples_per_pixel = 100;
   cam.max_depth = 50;
 
   cam.vFov = 20;
   cam.lookfrom = point3(13, 2, 3);
-  cam.lookat = vec3(0, 1, 0);
+  cam.lookat = point3(0, 0, 0);
   cam.vUp = vec3(0, 1, 0);
 
   cam.defocus_angle = 0;
@@ -118,6 +139,15 @@ void bouncing_spheres() {
 }
 
 int main() {
-  // bouncing_spheres();
-  checkered_spheres();
+  switch (3) {
+  case 1:
+    bouncing_spheres();
+    break;
+  case 2:
+    checkered_spheres();
+    break;
+  case 3:
+    earth();
+    break;
+  }
 }

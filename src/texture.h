@@ -1,6 +1,8 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include "interval.h"
+#include "rtw_stb.h"
 #include "vec3.h"
 #include "color.h"
 
@@ -44,6 +46,33 @@ public:
 
     bool isEven = (xInt + yInt + zInt) % 2 == 0;
     return isEven ? even->value(u, v, position) : odd->value(u, v, position);
+  }
+};
+
+class image_texture : public texture {
+private:
+  rtw_image image;
+
+public:
+  image_texture(const char *filename) : image(filename) {}
+
+  color value(float u, float v, const point3 &position) const override {
+    // if not texture found, return cyan for debugging
+    if (image.height() <= 0)
+      return color(0, 1, 1);
+
+    // clamp input tex coords to [0, 1] x [1, 0]
+    u = interval(0, 1).clamp(u);
+    v = 1.0 - interval(0, 1).clamp(v);
+
+    int i = int(u * image.width());
+    int j = int(v * image.height());
+    const unsigned char *pixel = image.pixel_data(i, j);
+
+    float color_scale = 1.0 / 255.0;
+    color pixel_color = color(color_scale * pixel[0], color_scale * pixel[1],
+                              color_scale * pixel[2]);
+    return pixel_color;
   }
 };
 

@@ -5,6 +5,7 @@
 #include "hittable.h"
 #include "interval.h"
 #include <memory>
+#include <stdexcept>
 
 class sphere : public hittable {
 private:
@@ -35,6 +36,14 @@ public:
 
   aabb bounding_box() const override { return bbox; }
 
+  static void get_sphere_uv(const point3 &pos, float &u, float &v) {
+    float theta = std::acos(-pos.y());
+    float phi = std::atan2(-pos.z(), pos.x()) + pi;
+
+    u = phi / (2 * pi);
+    v = theta / pi;
+  }
+
   bool hit(const ray &r, interval ray_t, hit_record &record) const override {
     point3 current_center = center.at(r.time());
     vec3 center_minus_point = current_center - r.origin();
@@ -58,10 +67,11 @@ public:
 
     record.t = root;
     record.p = r.at(root);
-    record.mat = mat;
     vec3 normal = (record.p - current_center) / radius;
     record.set_face_normal(r, normal); // stores normal and if ray is from
                                        // inside or outside inside record
+    get_sphere_uv(normal, record.u, record.v);
+    record.mat = mat;
 
     return true;
   }
