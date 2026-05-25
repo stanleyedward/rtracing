@@ -2,3 +2,6 @@
 
 note:
 i have redundant imports because LSP was being annoying (help)
+
+![junior](junior_scene.png)
+  

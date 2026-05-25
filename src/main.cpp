@@ -16,7 +16,8 @@
 // clang-format on
 
 void junior() {
-  shared_ptr<texture> junior_tex = make_shared<image_texture>("junior.png");
+  shared_ptr<texture> junior_tex =
+      make_shared<image_texture>("textures/junior.png");
   shared_ptr<material> junior_surface = make_shared<lambertian>(junior_tex);
   shared_ptr<hittable> globe =
       make_shared<sphere>(point3(0, 0, -2), 2, junior_surface);
@@ -45,7 +46,8 @@ void junior() {
 }
 
 void earth() {
-  shared_ptr<texture> earth_tex = make_shared<image_texture>("earthmap.jpg");
+  shared_ptr<texture> earth_tex =
+      make_shared<image_texture>("textures/earthmap.jpg");
   shared_ptr<material> earth_surface = make_shared<lambertian>(earth_tex);
   shared_ptr<hittable> globe =
       make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
