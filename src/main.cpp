@@ -19,17 +19,17 @@ void junior() {
   shared_ptr<texture> junior_tex = make_shared<image_texture>("junior.png");
   shared_ptr<material> junior_surface = make_shared<lambertian>(junior_tex);
   shared_ptr<hittable> globe =
-      make_shared<sphere>(point3(0, 0, 0), 2, junior_surface);
+      make_shared<sphere>(point3(0, 0, -2), 2, junior_surface);
 
   hittable_list world;
   world.add(globe);
-  shared_ptr<material> mat1 = make_shared<metal>(color(0.7, 0.7, 0.7), 0.2);
-  shared_ptr<hittable> globe2 = make_shared<sphere>(point3(-2, 0,0),2, mat1);
+  shared_ptr<material> mat1 = make_shared<metal>(color(0.7, 0.7, 0.7), 0.0);
+  shared_ptr<hittable> globe2 = make_shared<sphere>(point3(0, 0, 2.2), 2, mat1);
   world.add(globe2);
   camera cam;
 
   cam.aspect_ratio = 16.0 / 9;
-  cam.image_width = 1200;
+  cam.image_width = 600;
   cam.samples_per_pixel = 100;
   cam.max_depth = 50;
 
