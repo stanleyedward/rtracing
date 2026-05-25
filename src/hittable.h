@@ -14,6 +14,8 @@ public:
   vec3 normal;
   bool front_face;
   shared_ptr<material> mat;
+  float u;
+  float v;
 
   void set_face_normal(const ray &r, vec3 &outward_normal) {
     front_face = (dot(r.direction(), outward_normal) < 0.0);

@@ -12,6 +12,7 @@
 #include "vec3.h"
 #include <memory>
 #include <chrono>
+#include "texture.h"
 // clang-format on
 
 int main() {
@@ -21,7 +22,7 @@ int main() {
   cam.aspect_ratio = 16.0 / 9.0;
   cam.camera_center = point3(0.0f, 0.f, 0.f);
   cam.max_depth = 50;
-  cam.samples_per_pixel = 100; // anti-alias, other stuff as well now
+  cam.samples_per_pixel = 100;
   cam.vFov = 20.0f;
 
   cam.lookfrom = point3(13, 2, 3);
@@ -33,9 +34,12 @@ int main() {
   // world
   hittable_list world;
 
-  shared_ptr<material> ground_material =
-      make_shared<lambertian>(color(0.5, 0.5, 0.5));
-  world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
+  // shared_ptr<material> ground_material =
+  //     make_shared<lambertian>(color(0.5, 0.5, 0.5));
+  shared_ptr<texture> checkers =
+      make_shared<checker_texture>(0.32, color(.2, .3, .1), color(.9, .9, .9));
+  world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+                                make_shared<lambertian>(checkers)));
 
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
@@ -80,9 +84,9 @@ int main() {
 
   world = hittable_list(make_shared<bvh_node>(world));
 
-  auto start = std::chrono::high_resolution_clock::now();
+  std::chrono::time_point start = std::chrono::high_resolution_clock::now();
   cam.render(world);
-  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::time_point end = std::chrono::high_resolution_clock::now();
   std::clog << "Total: "
             << std::chrono::duration_cast<std::chrono::milliseconds>(end -
                                                                      start)
