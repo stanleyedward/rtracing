@@ -23,9 +23,12 @@ void junior() {
 
   hittable_list world;
   world.add(globe);
-  shared_ptr<material> mat1 = make_shared<metal>(color(0.7, 0.7, 0.7), 0.0);
+  shared_ptr<material> mat1 = make_shared<metal>(color(0.7, 0.9, 0.9), 0.0);
   shared_ptr<hittable> globe2 = make_shared<sphere>(point3(0, 0, 2.2), 2, mat1);
   world.add(globe2);
+  shared_ptr<material> ground_mat =
+      make_shared<lambertian>(color(0.8, 0.8, 0.0));
+  world.add(make_shared<sphere>(point3(0, -1002, 0), 1000, ground_mat));
   camera cam;
 
   cam.aspect_ratio = 16.0 / 9;
