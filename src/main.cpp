@@ -6,6 +6,7 @@
 #include "hittable.h"
 #include "hittable_list.h"
 #include "material.h"
+#include "perlin.h"
 #include "sphere.h"
 
 #include "camera.h"
@@ -14,6 +15,39 @@
 #include <chrono>
 #include "texture.h"
 // clang-format on
+
+void perlin_spheres() {
+  hittable_list world;
+
+  shared_ptr<texture> perlin_tex = make_shared<noise_texture>();
+  world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+                                make_shared<lambertian>(perlin_tex)));
+  world.add(make_shared<sphere>(point3(0, 2, 0), 2,
+                                make_shared<lambertian>(perlin_tex)));
+
+  camera cam;
+
+  cam.aspect_ratio = 16.0 / 9.0;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+
+  cam.vFov = 20;
+  cam.lookfrom = point3(13, 2, 3);
+  cam.lookat = point3(0, 0, 0);
+  cam.vUp = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+
+  std::chrono::time_point start = std::chrono::high_resolution_clock::now();
+  cam.render(world);
+  std::chrono::time_point end = std::chrono::high_resolution_clock::now();
+  std::clog << "Total: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms\n";
+}
 
 void junior() {
   shared_ptr<texture> junior_tex =
@@ -170,7 +204,7 @@ void bouncing_spheres() {
 }
 
 int main() {
-  switch (3) {
+  switch (5) {
   case 1:
     bouncing_spheres();
     break;
@@ -182,6 +216,9 @@ int main() {
     break;
   case 4:
     earth();
+    break;
+  case 5:
+    perlin_spheres();
     break;
   }
 }

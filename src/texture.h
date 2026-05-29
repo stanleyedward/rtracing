@@ -5,6 +5,7 @@
 #include "rtw_stb.h"
 #include "vec3.h"
 #include "color.h"
+#include "perlin.h"
 
 class texture {
 public:
@@ -73,6 +74,17 @@ public:
     color pixel_color = color(color_scale * pixel[0], color_scale * pixel[1],
                               color_scale * pixel[2]);
     return pixel_color;
+  }
+};
+
+class noise_texture : public texture {
+private:
+  perlin noise;
+
+public:
+  noise_texture() {}
+  color value(float u, float v, const point3 &position) const override {
+    return color(1, 1, 1) * noise.noise(position);
   }
 };
 
