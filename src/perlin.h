@@ -1,10 +1,12 @@
 #ifndef PERLIN_H
 #define PERLIN_H
 
+#include "vec3.h"
 class perlin {
 private:
   static const int point_count = 256;
-  float randfloat[point_count];
+  // float randfloat[point_count];
+  vec3 randvec[point_count];
   int perm_x[point_count];
   int perm_y[point_count];
   int perm_z[point_count];
@@ -25,14 +27,20 @@ private:
       p[target] = temp;
     }
   }
-  static float trilinear_interpolation(float c[2][2][2], float u, float v,
-                                       float w) {
+  static float perlin_interp(vec3 c[2][2][2], float u, float v, float w) {
+
+    float uu = u * u * (3 - 2 * u);
+    float vv = v * v * (3 - 2 * v);
+    float ww = w * w * (3 - 2 * w);
+
     float accum = 0.0;
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 2; j++) {
         for (int k = 0; k < 2; k++) {
-          accum += (i * u + (1 - i) * (1 - u)) * (j * v + (1 - j) * (1 - v)) *
-                   (k * w + (1 - k) * (1 - w)) * c[i][j][k];
+          vec3 weight_v = vec3(u - i, v - j, w - k);
+          accum += (i * uu + (1 - i) * (1 - uu)) *
+                   (j * vv + (1 - j) * (1 - vv)) *
+                   (k * ww + (1 - k) * (1 - ww)) * dot(c[i][j][k], weight_v);
         }
       }
     }
@@ -42,7 +50,7 @@ private:
 public:
   perlin() {
     for (int i = 0; i < point_count; i++) {
-      randfloat[i] = random_float();
+      randvec[i] = unit_vector(vec3::random(-1, 1));
     }
 
     perlin_generate_perm(perm_x);
@@ -58,19 +66,33 @@ public:
     int i = int(std::floor(p.x()));
     int j = int(std::floor(p.y()));
     int k = int(std::floor(p.z()));
-    float c[2][2][2];
+    vec3 c[2][2][2];
 
     for (int di = 0; di < 2; di++) {
       for (int dj = 0; dj < 2; dj++) {
         for (int dk = 0; dk < 2; dk++) {
           c[di][dj][dk] =
-              randfloat[perm_x[(i + di) & 255] ^ perm_y[(j + dj) & 255] ^
-                        perm_z[(k + dk) & 255]];
+              randvec[perm_x[(i + di) & 255] ^ perm_y[(j + dj) & 255] ^
+                      perm_z[(k + dk) & 255]];
         }
       }
     }
 
-    return trilinear_interpolation(c, u, v, w);
+    return perlin_interp(c, u, v, w);
+  }
+
+  float turb(const point3 &pos, int depth) const {
+    float accum = 0.0;
+    vec3 temp_p = pos;
+    float weight = 1.0;
+
+    for (int i = 0; i < depth; i++) {
+      accum += weight * noise(temp_p);
+      weight *= 0.5;
+      temp_p *= 2;
+    }
+
+    return std::fabs(accum);
   }
 };
 

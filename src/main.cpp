@@ -19,7 +19,7 @@
 void perlin_spheres() {
   hittable_list world;
 
-  shared_ptr<texture> perlin_tex = make_shared<noise_texture>();
+  shared_ptr<texture> perlin_tex = make_shared<noise_texture>(4);
   world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
                                 make_shared<lambertian>(perlin_tex)));
   world.add(make_shared<sphere>(point3(0, 2, 0), 2,
