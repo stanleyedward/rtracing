@@ -5,7 +5,6 @@
 #include "hittable.h"
 #include "interval.h"
 #include <memory>
-#include <stdexcept>
 
 class sphere : public hittable {
 private:

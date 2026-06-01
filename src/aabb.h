@@ -6,12 +6,25 @@
 #include "ray.h"
 
 class aabb {
+private:
+  void pad_to_minimums() {
+    float delta = 0.0001;
+    if (x.size() < delta)
+      x = x.expand(delta);
+    if (y.size() < delta)
+      y = y.expand(delta);
+    if (z.size() < delta)
+      z = z.expand(delta);
+  }
+
 public:
   interval x, y, z;
 
   aabb() {}
   aabb(const interval &x, const interval &y, const interval &z)
-      : x(x), y(y), z(z) {}
+      : x(x), y(y), z(z) {
+    pad_to_minimums();
+  }
   aabb(const point3 &p, const point3 &q) {
     x = p[0] <= q[0] ? interval(p[0], q[0]) : interval(q[0], p[0]);
     y = p[1] <= q[1] ? interval(p[1], q[1]) : interval(q[1], p[1]);
@@ -21,6 +34,8 @@ public:
     x = interval(box1.x, box2.x);
     y = interval(box1.y, box2.y);
     z = interval(box1.z, box2.z);
+
+    pad_to_minimums();
   }
 
   const interval &axis_interval(int n) const {
