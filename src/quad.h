@@ -75,67 +75,61 @@ public:
 };
 
 class tri : public quad {
-  public:
-    tri(const point3& o, const vec3& aa, const vec3& ab, shared_ptr<material> m)
-      : quad(o, aa, ab, m)
-    {}
+public:
+  tri(const point3 &o, const vec3 &aa, const vec3 &ab, shared_ptr<material> m)
+      : quad(o, aa, ab, m) {}
 
-    virtual bool is_interior(float a, float b, hit_record& rec) const override {
-        if ((a < 0) || (b < 0) || (a + b > 1))
-            return false;
+  virtual bool is_interior(float a, float b, hit_record &rec) const override {
+    if ((a < 0) || (b < 0) || (a + b > 1))
+      return false;
 
-        rec.u = a;
-        rec.v = b;
-        return true;
-    }
+    rec.u = a;
+    rec.v = b;
+    return true;
+  }
 };
-
 
 class ellipse : public quad {
-  public:
-    ellipse(
-        const point3& center, const vec3& u, const vec3& v, shared_ptr<material> m
-    ) : quad(center, u, v, m)
-    {}
+public:
+  ellipse(const point3 &center, const vec3 &u, const vec3 &v,
+          shared_ptr<material> m)
+      : quad(center, u, v, m) {}
 
-    virtual void set_bounding_box() override {
-        bbox = aabb(Q - u - v, Q + u + v);
-    }
+  virtual void set_bounding_box() override {
+    bbox = aabb(Q - u - v, Q + u + v);
+  }
 
-    virtual bool is_interior(float a, float b, hit_record& rec) const override {
-        if ((a*a + b*b) > 1)
-            return false;
+  virtual bool is_interior(float a, float b, hit_record &rec) const override {
+    if ((a * a + b * b) > 1)
+      return false;
 
-        rec.u = a/2 + 0.5;
-        rec.v = b/2 + 0.5;
-        return true;
-    }
+    rec.u = a / 2 + 0.5;
+    rec.v = b / 2 + 0.5;
+    return true;
+  }
 };
 
-
 class annulus : public quad {
-  public:
-    annulus(
-        const point3& center, const vec3& side_A, const vec3& side_B, float _inner,
-        shared_ptr<material> m)
-      : quad(center, side_A, side_B, m), inner(_inner)
-    {}
+public:
+  annulus(const point3 &center, const vec3 &side_A, const vec3 &side_B,
+          float _inner, shared_ptr<material> m)
+      : quad(center, side_A, side_B, m), inner(_inner) {}
 
-    virtual void set_bounding_box() override {
-        bbox = aabb(Q - u - v, Q + u + v);
-    }
+  virtual void set_bounding_box() override {
+    bbox = aabb(Q - u - v, Q + u + v);
+  }
 
-    virtual bool is_interior(float a, float b, hit_record& rec) const override {
-        auto center_dist = sqrt(a*a + b*b);
-        if ((center_dist < inner) || (center_dist > 1))
-            return false;
+  virtual bool is_interior(float a, float b, hit_record &rec) const override {
+    auto center_dist = sqrt(a * a + b * b);
+    if ((center_dist < inner) || (center_dist > 1))
+      return false;
 
-        rec.u = a/2 + 0.5;
-        rec.v = b/2 + 0.5;
-        return true;
-    }
+    rec.u = a / 2 + 0.5;
+    rec.v = b / 2 + 0.5;
+    return true;
+  }
 
-  private:
-    float inner;
+private:
+  float inner;
 };
 #endif
