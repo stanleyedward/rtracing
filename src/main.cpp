@@ -17,6 +17,45 @@
 #include "texture.h"
 // clang-format on
 
+void simple_light() {
+  hittable_list world;
+
+  auto pertext = make_shared<noise_texture>(4);
+  world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+                                make_shared<lambertian>(pertext)));
+  world.add(make_shared<sphere>(point3(0, 2, 0), 2,
+                                make_shared<lambertian>(pertext)));
+
+  auto difflight = make_shared<diffuse_light>(color(4, 4, 4));
+  world.add(make_shared<quad>(point3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0),
+                              difflight));
+
+  camera cam;
+
+  cam.aspect_ratio = 16.0 / 9.0;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+  cam.background = color(0, 0, 0);
+  cam.use_sky_gradient = false;
+
+  cam.vFov = 20;
+  cam.lookfrom = point3(26, 3, 6);
+  cam.lookat = point3(0, 2, 0);
+  cam.vUp = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+
+  std::chrono::time_point start = std::chrono::high_resolution_clock::now();
+  cam.render(world);
+  std::chrono::time_point end = std::chrono::high_resolution_clock::now();
+  std::clog << "Total: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms\n";
+}
+
 void more2d() {
   hittable_list world;
 
@@ -48,10 +87,17 @@ void more2d() {
   cam.lookfrom = point3(0, 0, 9);
   cam.lookat = point3(0, 0, 0);
   cam.vUp = vec3(0, 1, 0);
-
+  cam.background = color(0.70, 0.80, 1.00);
   cam.defocus_angle = 0;
 
+  std::chrono::time_point start = std::chrono::high_resolution_clock::now();
   cam.render(world);
+  std::chrono::time_point end = std::chrono::high_resolution_clock::now();
+  std::clog << "Total: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms\n";
 }
 
 void perlin_spheres() {
@@ -75,6 +121,7 @@ void perlin_spheres() {
   cam.lookat = point3(0, 0, 0);
   cam.vUp = vec3(0, 1, 0);
 
+  cam.background = color(0.70, 0.80, 1.00);
   cam.defocus_angle = 0;
 
   std::chrono::time_point start = std::chrono::high_resolution_clock::now();
@@ -119,6 +166,7 @@ void quads() {
   cam.lookat = point3(0, 0, 0);
   cam.vUp = vec3(0, 1, 0);
 
+  cam.background = color(0.70, 0.80, 1.00);
   cam.defocus_angle = 0;
 
   cam.render(world);
@@ -146,6 +194,7 @@ void junior() {
   cam.samples_per_pixel = 100;
   cam.max_depth = 50;
 
+  cam.background = color(0.70, 0.80, 1.00);
   cam.vFov = 20;
   cam.lookfrom = point3(36 / 3.0, 0, 6 / 3.0);
   cam.lookat = point3(0, 0, 0);
@@ -168,6 +217,7 @@ void earth() {
   cam.samples_per_pixel = 100;
   cam.max_depth = 50;
 
+  cam.background = color(0.70, 0.80, 1.00);
   cam.vFov = 20;
   cam.lookfrom = point3(0, 0, -12);
   cam.lookat = point3(0, 0, 0);
@@ -192,6 +242,7 @@ void checkered_spheres() {
   cam.samples_per_pixel = 100;
   cam.max_depth = 50;
 
+  cam.background = color(0.70, 0.80, 1.00);
   cam.vFov = 20;
   cam.lookfrom = point3(13, 2, 3);
   cam.lookat = point3(0, 0, 0);
@@ -209,6 +260,7 @@ void bouncing_spheres() {
   cam.samples_per_pixel = 100;
   cam.vFov = 20.0f;
 
+  cam.background = color(0.70, 0.80, 1.00);
   cam.lookfrom = point3(13, 2, 3);
   cam.lookat = point3(0, 0, 0);
   cam.vUp = vec3(0, 1, 0);
@@ -279,7 +331,7 @@ void bouncing_spheres() {
 }
 
 int main() {
-  switch (7) {
+  switch (8) {
   case 1:
     bouncing_spheres();
     break;
@@ -300,6 +352,9 @@ int main() {
     break;
   case 7:
     more2d();
+    break;
+  case 8:
+    simple_light();
     break;
   }
 }

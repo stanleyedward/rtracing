@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "hittable.h"
+#include "interval.h"
 #include "material.h"
 #include "vec3.h"
 #include <cstdlib>
@@ -63,22 +64,29 @@ private:
     }
     hit_record record;
 
-    if (world.hit(r, interval(0.001, infinity), record)) { // edge
-      ray scattered;
-      color attenuation;
-      if (record.mat->scatter(r, record, attenuation, scattered)) {
-        return attenuation * ray_color(scattered, world, depth - 1);
+    // if ray hits nothing return background;
+    if (!world.hit(r, interval(0.0001, infinity), record)) {
+      if (use_sky_gradient) {
+        vec3 unit_vector_r = unit_vector(r.direction());
+        // go from [-1, 1] to [0, 1]
+        float a = (unit_vector_r.y() + 1.0) * 0.5;
+        color white(1., 1., 1.);
+        color blue(0.5, 0.7, 1.0);
+        color c = (1 - a) * white + a * blue;
+        return c;
       }
-      return color(0., 0., 0.);
+      return background;
     }
-
-    vec3 unit_vector_r = unit_vector(r.direction());
-    // go from [-1, 1] to [0, 1]
-    float a = (unit_vector_r.y() + 1.0) * 0.5;
-    color white(1., 1., 1.);
-    color blue(0.5, 0.7, 1.0);
-    color c = (1 - a) * white + a * blue;
-    return c;
+    ray scattered;
+    color attenuation;
+    color color_from_emission =
+        record.mat->emitted(record.u, record.v, record.p);
+    if (!record.mat->scatter(r, record, attenuation, scattered)) {
+      return color_from_emission;
+    }
+    color color_from_scatter =
+        attenuation * ray_color(scattered, world, depth - 1);
+    return color_from_scatter + color_from_emission;
   }
 
   ray get_ray(int i, int j) const {
@@ -125,6 +133,8 @@ public:
   float defocus_angle = 0.0;
   float focus_distance = 10.0; // distance from lens to focal plane in real
                                // world
+  color background;
+  bool use_sky_gradient = false;
   void render(const hittable &world) {
     initialize();
 
