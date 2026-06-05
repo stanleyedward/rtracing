@@ -30,4 +30,17 @@ public:
   virtual aabb bounding_box() const = 0;
 };
 
+class translate : public hittable {
+  public:
+  bool hit(const ray &r, interval ray_t, hit_record &record) const override {
+      ray offset_r(r.origin() - offset, r.direction(), r.time());
+      if(!object->hit(offset_r, ray_t, record)) return false;
+      record.p += offset;
+      return true;
+  }
+  private:
+    shared_ptr<hittable> object;
+    vec3 offset;
+};
+
 #endif
