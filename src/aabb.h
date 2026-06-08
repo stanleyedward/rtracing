@@ -96,5 +96,10 @@ inline const aabb aabb::empty =
     aabb(interval::empty, interval::empty, interval::empty);
 inline const aabb aabb::universe =
     aabb(interval::universe, interval::universe, interval::universe);
-
+inline aabb operator+(const aabb &bbox, const vec3 &offset) {
+  return aabb(bbox.x + offset.x(), bbox.y + offset.y(), bbox.z + offset.z());
+}
+inline aabb operator+(const vec3 &offset, const aabb &bbox) {
+  return bbox + offset;
+}
 #endif

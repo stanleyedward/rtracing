@@ -39,5 +39,10 @@ public:
 
 inline const interval interval::empty = interval(+infinity, -infinity);
 inline const interval interval::universe = interval(-infinity, +infinity);
-
+inline interval operator+(const interval &interv, float displacement) {
+  return interval(interv.min + displacement, interv.max + displacement);
+}
+inline interval operator+(float displacement, const interval &interv) {
+  return interv + displacement;
+}
 #endif
