@@ -11,11 +11,70 @@
 #include "quad.h"
 
 #include "camera.h"
+#include "constant_medium.h"
 #include "vec3.h"
-#include <memory>
 #include <chrono>
 #include "texture.h"
 // clang-format on
+
+void cornell_smoke() {
+  hittable_list world;
+
+  auto red = make_shared<lambertian>(color(.65, .05, .05));
+  auto white = make_shared<lambertian>(color(.73, .73, .73));
+  auto green = make_shared<lambertian>(color(.12, .45, .15));
+  auto light = make_shared<diffuse_light>(color(7, 7, 7));
+
+  world.add(make_shared<quad>(point3(555, 0, 0), vec3(0, 555, 0),
+                              vec3(0, 0, 555), green));
+  world.add(make_shared<quad>(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555),
+                              red));
+  world.add(make_shared<quad>(point3(113, 554, 127), vec3(330, 0, 0),
+                              vec3(0, 0, 305), light));
+  world.add(make_shared<quad>(point3(0, 555, 0), vec3(555, 0, 0),
+                              vec3(0, 0, 555), white));
+  world.add(make_shared<quad>(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555),
+                              white));
+  world.add(make_shared<quad>(point3(0, 0, 555), vec3(555, 0, 0),
+                              vec3(0, 555, 0), white));
+
+  shared_ptr<hittable> box1 =
+      box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = make_shared<rotate_y>(box1, 15);
+  box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+
+  shared_ptr<hittable> box2 =
+      box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = make_shared<rotate_y>(box2, -18);
+  box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+
+  world.add(make_shared<constant_medium>(box1, 0.01, color(0, 0, 0)));
+  world.add(make_shared<constant_medium>(box2, 0.01, color(1, 1, 1)));
+
+  camera cam;
+
+  cam.aspect_ratio = 1.0;
+  cam.image_width = 600;
+  cam.samples_per_pixel = 200;
+  cam.max_depth = 50;
+  cam.background = color(0, 0, 0);
+
+  cam.vFov = 40;
+  cam.lookfrom = point3(278, 278, -800);
+  cam.lookat = point3(278, 278, 0);
+  cam.vUp = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+
+  std::chrono::time_point start = std::chrono::high_resolution_clock::now();
+  cam.render(world);
+  std::chrono::time_point end = std::chrono::high_resolution_clock::now();
+  std::clog << "Total: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms\n";
+}
 
 void cornell_box() {
   hittable_list world;
@@ -389,8 +448,8 @@ void bouncing_spheres() {
             << "ms\n";
 }
 
-int main() {
-  switch (9) {
+int main() { // these are just different scenes
+  switch (10) {
   case 1:
     bouncing_spheres();
     break;
@@ -417,6 +476,9 @@ int main() {
     break;
   case 9:
     cornell_box();
+    break;
+  case 10:
+    cornell_smoke();
     break;
   }
 }

@@ -106,4 +106,20 @@ private:
     return r0 + (1 - r0) * std::pow((1 - cos_theta), 5);
   }
 };
+
+class isotropic : public material {
+private:
+  shared_ptr<texture> tex;
+
+public:
+  isotropic(const color &abledo) : tex(make_shared<solid_color>(abledo)) {}
+  isotropic(shared_ptr<texture> tex) : tex(tex) {}
+
+  bool scatter(const ray &r_in, const hit_record &record, color &attenuation,
+               ray &scattered) const override {
+    scattered = ray(record.p, random_unit_vector(), r_in.time());
+    attenuation = tex->value(record.u, record.v, record.p);
+    return true;
+  }
+};
 #endif
