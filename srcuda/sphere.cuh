@@ -4,13 +4,12 @@
 #include "common.cuh"
 #include "hittable.cuh"
 #include "interval.cuh"
-#include <memory>
 
 class sphere : public hittable {
 private:
   ray center;
   float radius;
-  shared_ptr<material> mat;
+  material* mat;
   aabb bbox;
 
 public:
@@ -55,7 +54,7 @@ public:
       return false;
     }
 
-    float sqrt_disc = std::sqrt(discriminant);
+    float sqrt_disc = sqrtf(discriminant);
     float root = (h - sqrt_disc) / a;
     if (!ray_t.surrounds(root)) {
       root = (h + sqrt_disc) / a;

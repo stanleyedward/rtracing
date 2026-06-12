@@ -20,7 +20,7 @@ public:
   __device__ hittable_list(hittable** objs, int obj_count) : objects(objs), list_size(obj_count){ set_bbox(objs, obj_count); }
 
   __device__ void set_bbox(hittable** objects, int obj_count) {
-    bbox = aabb::empty;
+    bbox = aabb::empty();
     for(int i = 0 ; i < obj_count; i ++ ){
       bbox = aabb(bbox, objects[i]->bounding_box());
     }

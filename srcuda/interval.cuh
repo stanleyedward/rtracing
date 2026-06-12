@@ -35,11 +35,12 @@ public:
     return x;
   }
 
-  static const interval empty, universe;
+  __device__ static interval empty() {return interval(+infinity, -infinity);}
+  __device__ static interval universe() {return interval(-infinity, +infinity);}
 };
 
-inline const interval interval::empty = interval(+infinity, -infinity);
-inline const interval interval::universe = interval(-infinity, +infinity);
+// inline constexpr interval interval::empty = interval(+infinity, -infinity);
+// inline constexpr interval interval::universe = interval(-infinity, +infinity);
 
 __device__ inline interval operator+(const interval &interv, float displacement) {
   return interval(interv.min + displacement, interv.max + displacement);
