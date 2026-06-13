@@ -16,40 +16,154 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
     }
 }
 
-__device__ vec3 color(const ray& r){
-    vec3 unit_direction = unit_vector(r.direction());
-    float t = 0.5f*(unit_direction.y() + 1.f);
-    return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+void cornell_box() {
+  hittable_list world;
+
+  auto red = make_shared<lambertian>(color(.65, .05, .05));
+  auto white = make_shared<lambertian>(color(.73, .73, .73));
+  auto green = make_shared<lambertian>(color(.12, .45, .15));
+  auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+  world.add(make_shared<quad>(point3(555, 0, 0), vec3(0, 555, 0),
+                              vec3(0, 0, 555), green));
+  world.add(make_shared<quad>(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555),
+                              red));
+  world.add(make_shared<quad>(point3(343, 554, 332), vec3(-130, 0, 0),
+                              vec3(0, 0, -105), light));
+  world.add(make_shared<quad>(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555),
+                              white));
+  world.add(make_shared<quad>(point3(555, 555, 555), vec3(-555, 0, 0),
+                              vec3(0, 0, -555), white));
+  world.add(make_shared<quad>(point3(0, 0, 555), vec3(555, 0, 0),
+                              vec3(0, 555, 0), white));
+
+  shared_ptr<hittable> box1 =
+      box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = make_shared<rotate_y>(box1, 15);
+  box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+  world.add(box1);
+
+  shared_ptr<hittable> box2 =
+      box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = make_shared<rotate_y>(box2, -18);
+  box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+  world.add(box2);
+  camera cam;
+
+  cam.aspect_ratio = 1.0;
+  cam.image_width = 600;
+  cam.samples_per_pixel = 200;
+  cam.max_depth = 50;
+  cam.background = color(0, 0, 0);
+  cam.use_sky_gradient = false;
+
+  cam.vFov = 40;
+  cam.lookfrom = point3(278, 278, -800);
+  cam.lookat = point3(278, 278, 0);
+  cam.vUp = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+
+  std::chrono::time_point start = std::chrono::high_resolution_clock::now();
+  cam.render(world);
+  std::chrono::time_point end = std::chrono::high_resolution_clock::now();
+  std::clog << "Total: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms\n";
+}
+__global__ void create_cornell_box(hittable_list* world, camera* cam,curandState* state) {
+    if(!(threadIdx.x == 0 && blockIdx.x == 0)) return;
+    //init_world
+    hittable** objects_list;
+    unsigned int object_count = 0 ;
+
+    //walls
+    auto red = new lambertian(color(.65, .05, .05));
+    auto white = new lambertian(color(.73, .73, .73));
+    auto green = new lambertian(color(.12, .45, .15));
+    auto light = new diffuse_light(color(15, 15, 15));
+    
+
+    objects_list[object_count++] = new quad(point3(555, 0, 0), vec3(0, 555, 0),
+                                vec3(0, 0, 555), green));
+    objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555),
+                                red));
+    objects_list[object_count++] = new quad(point3(343, 554, 332), vec3(-130, 0, 0),
+                                vec3(0, 0, -105), light));
+    objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555),
+                                white));
+    objects_list[object_count++] = new quad(point3(555, 555, 555), vec3(-555, 0, 0),
+                                vec3(0, 0, -555), white));
+    objects_list[object_count++] = new quad(point3(0, 0, 555), vec3(555, 0, 0),
+                                vec3(0, 555, 0), white));
+    //boxes
+    hittable_list* box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
+    box1 = new rotate_y(box1, 15);
+    box1 = new translate(box1, vec3(265, 0, 295));
+    objects_list[object_count++] = box1;
+
+    hittable_list* box2 = box(point3(0, 0, 0), point3(165, 165, 165), white);
+    box2 = new rotate_y(box2, -18);
+    box2 = new translate(box2, vec3(130, 0, 65));
+    objects_list[object_count++] = box2;
+
+    world->objects = objects_list;
+    world->list_size = object_count;
+    world->set_bbox();
+
+    //init_camera
+    cam->aspect_ratio = 1.0;
+    cam->image_width = 600;
+    cam->samples_per_pixel = 200;
+    cam->max_depth = 50;
+    cam->background = color(0, 0, 0);
+    cam->use_sky_gradient = false;
+
+    cam->vFov = 40;
+    cam->lookfrom = point3(278, 278, -800);
+    cam->lookat = point3(278, 278, 0);
+    cam->vUp = vec3(0, 1, 0);
+    cam->defocus_angle = 0;
+    cam->initialize();
 }
 
-__global__ void render(float *output_image, unsigned int image_width, unsigned int image_height){
-    unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
-    unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (col >= image_width || row >= image_height) {return;}
-    unsigned int pixel_id = (row*image_width*CH) + (col * CH);
-    output_image[pixel_id + 0] = float(col) / image_width;
-    output_image[pixel_id + 1] = float(row) / image_height;
-    output_image[pixel_id + 2] = 0.2;
+void cornell_box(hittable_list* world, camera* cam, curandState* state){
+    cudaMalloc(&world, sizeof(hittable_list));
+    cudaMalloc(&cam, sizeof(camera));
+    create_cornell_box<<<1, 1>>>(d_world, d_camera, state);
+    CHECK_CUDA(cudaGetlastError());
+    CHECK_CUDA(cudaDeviceSynchronize());
 }
 
 int main() {
-  unsigned int image_width = 1200;
-  float aspect_ratio = 16.0/9;
-  unsigned int image_height = int(image_width / aspect_ratio);
-  image_height = image_height < 1 ? 1 : image_height;
-
-  //alloc mem for image
-  int output_image_size = image_width * image_height;
-  float *output_image;
-  checkCudaErrors(cudaMallocManaged((void**) &output_image, output_image_size*sizeof(vec3)));
+  //get random states
+  curandState* d_render_states;
+  curandState* d_init_rand_state;
+  cudaMalloc((void**) &d_render_states, output_image_size*sizeof(curandState));
+  cudaMalloc((void**) &d_init_rand_state, 1*sizeof(curandState));
+  rand_init_states<<<1, 1>>>(d_init_rand_state,seed);
+  rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(image_width, image_height, d_render_states, seed);
+  CHECK_CUDA(cudaGetlastError());
+  CHECK_CUDA(cudaDeviceSynchronize());
   
+  hittable_list* d_world;
+  camera* d_cam;
+  //create the scene use the init state rand
+  switch (scene_number) {
+  case 1: cornell_box(d_world, d_cam, d_init_rand_state); break;
+  default: cornell_box(d_world, d_cam, d_init_rand_state); break;
+  }
+
+  //after creating scene get the camer details and alloc space for the output image using image_height and image_width
+
+  checkCudaErrors(cudaMallocManaged((void**) &output_image, output_image_size*CH*sizeof(float)));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
   dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE), CEIL_DIV(image_height, TILE_SIZE), 1);
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(output_image, image_width, image_height);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
-
 
   //write to .ppm
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";

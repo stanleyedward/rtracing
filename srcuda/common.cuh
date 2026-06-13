@@ -15,7 +15,7 @@ inline constexpr float pi =
 
 __device__ inline float degree_to_radian(float degrees) { return degrees * pi / 180.0f; }
 
-__global__ void init_rand_state(unsigned int image_width, unsigned int image_height, curandState *rand_state, unsigned int seed){
+__global__ void rand_render_states(unsigned int image_width, unsigned int image_height, curandState *rand_state, unsigned int seed){
   unsigned int row = blockIdx.y * blockDim.y + threadIdx.y;
   unsigned int col = blockIdx.x * blockDim.x + threadIdx.x;
   if (col >= image_width || row >= image_height) return;
@@ -24,8 +24,14 @@ __global__ void init_rand_state(unsigned int image_width, unsigned int image_hei
   // curand_init(2004, pixel_idx, 0, &rand_state[pixel_idx]);
 }
 
+__global__ void rand_init_states(curandState *state, unsigned int seed){
+  if(threadIdx.x == 0 && blockIdx.x == 0){ 
+    curand_init(seed, 0, 0, state); 
+  }
+}
+
 __device__ inline float random_float(curandState *state) {
-  // gives between [0, 1) better way using cuRAND uni distribution
+  // gives between [0, 1) using cuRAND uni distribution
   return curand_uniform(state);
 }
 

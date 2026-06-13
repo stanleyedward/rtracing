@@ -16,21 +16,14 @@ public:
   unsigned int list_size;
 
   __device__ hittable_list() {}
-  // __device__ hittable_list(shared_ptr<hittable> object) { add(object); }
-  __device__ hittable_list(hittable** objs, int obj_count) : objects(objs), list_size(obj_count){ set_bbox(objs, obj_count); }
+  __device__ hittable_list(hittable** objs, int obj_count) : objects(objs), list_size(obj_count){ set_bbox(); }
 
-  __device__ void set_bbox(hittable** objects, int obj_count) {
+  __device__ void set_bbox() {
     bbox = aabb::empty();
-    for(int i = 0 ; i < obj_count; i ++ ){
+    for(int i = 0 ; i < list_size; i ++ ){
       bbox = aabb(bbox, objects[i]->bounding_box());
     }
   }
-  // __device__ void add(shared_ptr<hittable> object) {
-  //   objects.push_back(object);
-  //   bbox = aabb(bbox, object->bounding_box());
-  // }
-
-  // __device__ void clear() { objects.clear(); }
 
   __device__ aabb bounding_box() const override { return bbox; }
 
