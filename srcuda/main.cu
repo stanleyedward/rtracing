@@ -171,12 +171,17 @@ int main() {
   }
 
   //after creating scene get the camer details and alloc space for the output image using image_height and image_width
-  float* output_image;
-  checkCudaErrors(cudaMallocManaged((void**) &output_image, output_image_size*CH*sizeof(float)));
+  float* d_output_image;
+  float* h_output_image = malloc(output_image_size*CH*sizeof(float));
+  checkCudaErrors(cudaMallocManaged((void**) &d_output_image, output_image_size*CH*sizeof(float)));
+  cudaMalloc(&d_output_image, output_image_size*CH*sizeof(float));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
   dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE), CEIL_DIV(image_height, TILE_SIZE), 1);
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(output_image, d_world, d_cam, d_render_states);
   checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  cudaMemcpy(h_output_image, d_output_image, output_image_size*CH*sizeof(float), cudaMemcpyDeviceToHost);
   checkCudaErrors(cudaDeviceSynchronize());
 
   //write to .ppm

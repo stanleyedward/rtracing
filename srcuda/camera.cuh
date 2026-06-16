@@ -89,7 +89,36 @@ private:
     return color_from_scatter + color_from_emission;
   }
 
-  __device__ ray get_ray(int i, int j, curandState* state) const {
+  __device__ color ray_color2(const ray& r, const hittable* world, int depth, curandState* state){
+    color current_attenuation = color(1.f, 1.f, 1.f);
+    ray current_ray = r;
+    for(int i=0; i< depth; i++){
+      hit_record record;
+      ray scattered;
+      color attenuation;
+      if (!world->hit(current_ray, interval(0.0001f, infinity), record)) {
+        if (use_sky_gradient) {
+          vec3 unit_vector_r = unit_vector(current_ray.direction());
+          // go from [-1, 1] to [0, 1]
+          float a = (unit_vector_r.y() + 1.0) * 0.5;
+          color white(1., 1., 1.);
+          color blue(0.5, 0.7, 1.0);
+          color c = (1 - a) * white + a * blue;
+          current_attenuation *= c; break;
+        }
+        current_attenuation *= background; break;
+      }
+      
+      color color_from_emission = record.mat->emitted(record.u, record.v, record.p);
+      if(!record.mat->scatter(current_ray, record, attenuation, scattered, state)) {
+        global_attenuation *= color_from_emission; break;
+      }
+      color color_from_scatter = attenuation * 
+    }
+    return current_attenuation;
+  }
+
+  __device__ ray get_ray(const unsigned int i, const unsigned int j, curandState* state) const {
     // gives us a camera ray from defocus disk directed at randomly sampled
     // point around the viewport pixel location i,j.
     vec3 offset = sample_square(state);
@@ -131,15 +160,15 @@ public:
 
   // focus
   float defocus_angle = 0.0;
-  float focus_distance = 10.0; // distance from lens to focal plane in real
-                               // world
+  float focus_distance = 10.0; // distance from lens to focal plane in world space
   color background;
   bool use_sky_gradient = false;
-  __device__ vec3 render(const unsigned int row, const unsigned int col, const hittable &world, curandState* state) { //TODO change this later
+
+  __device__ vec3 render(const unsigned int row, const unsigned int col, const hittable* world, curandState* state) { //TODO change this later
     color pixel_color(0., 0., 0.);
     for (int sample = 0; sample < samples_per_pixel; sample++) {
       ray r = get_ray(col, row, state);
-      pixel_color += ray_color(r, world, max_depth);
+      pixel_color += ray_color(r, world, max_depth, state);
     }
     return linear_to_gamma(pixel_color * pixel_sample_scale);
   }
