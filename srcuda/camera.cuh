@@ -135,26 +135,13 @@ public:
                                // world
   color background;
   bool use_sky_gradient = false;
-  __device__ void render(const hittable &world, curandState* state) { //TODO change this later
-    initialize();
-
-    // render the image
-    std::string color_code = "P3";
-    std::cout << color_code << "\n"
-              << image_width << " " << image_height << "\n255\n";
-    for (int i = 0; i < image_height; i++) {
-      std::clog << "\rScanlines remaining: " << (image_height - i) << " "
-                << std::flush;
-      for (int j = 0; j < image_width; j++) {
-        color pixel_color(0., 0., 0.);
-        for (int sample = 0; sample < samples_per_pixel; sample++) {
-          ray r = get_ray(j, i, state);
-          pixel_color += ray_color(r, world, max_depth);
-        }
-        write_color(std::cout, pixel_color * pixel_sample_scale);
-      }
+  __device__ vec3 render(const unsigned int row, const unsigned int col, const hittable &world, curandState* state) { //TODO change this later
+    color pixel_color(0., 0., 0.);
+    for (int sample = 0; sample < samples_per_pixel; sample++) {
+      ray r = get_ray(col, row, state);
+      pixel_color += ray_color(r, world, max_depth);
     }
-    std::clog << "\rDone.                        \n";
+    return linear_to_gamma(pixel_color * pixel_sample_scale);
   }
 };
 

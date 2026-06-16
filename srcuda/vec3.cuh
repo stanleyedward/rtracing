@@ -19,6 +19,12 @@ public:
 
    __device__ float z() const { return e[2]; }
 
+   __device__ float r() const { return e[0]; }
+
+   __device__ float g() const { return e[1]; }
+
+   __device__ float b() const { return e[2]; }
+
    __device__ vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
 
    __device__ float operator[](int i) const { return e[i]; }

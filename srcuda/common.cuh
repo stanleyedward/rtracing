@@ -20,8 +20,10 @@ __global__ void rand_render_states(unsigned int image_width, unsigned int image_
   unsigned int col = blockIdx.x * blockDim.x + threadIdx.x;
   if (col >= image_width || row >= image_height) return;
   unsigned int pixel_idx = row*image_width + col;
-  curand_init(pixel_idx + seed, pixel_idx, 0, &rand_state[pixel_idx]);
-  // curand_init(2004, pixel_idx, 0, &rand_state[pixel_idx]);
+  //same seed different sequence
+  // curand_init(seed, pixel_idx, 0, &rand_state[pixel_idx]);
+  //different seed, same sequence gave 2x perf
+  curand_init(pixel_idx + seed, 0, 0, &rand_state[pixel_idx]);
 }
 
 __global__ void rand_init_states(curandState *state, unsigned int seed){
@@ -31,8 +33,8 @@ __global__ void rand_init_states(curandState *state, unsigned int seed){
 }
 
 __device__ inline float random_float(curandState *state) {
-  // gives between [0, 1) using cuRAND uni distribution
-  return curand_uniform(state);
+  //curand gives (0, 1] doing 1- to mkae it [0, 1)
+  return 1.0f - curand_uniform(state);
 }
 
 __device__ inline float random_float(float min, float max, curandState *state) {

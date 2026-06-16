@@ -85,7 +85,6 @@ __global__ void create_cornell_box(hittable_list* world, camera* cam,curandState
     auto green = new lambertian(color(.12, .45, .15));
     auto light = new diffuse_light(color(15, 15, 15));
     
-
     objects_list[object_count++] = new quad(point3(555, 0, 0), vec3(0, 555, 0),
                                 vec3(0, 0, 555), green));
     objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555),
@@ -98,6 +97,7 @@ __global__ void create_cornell_box(hittable_list* world, camera* cam,curandState
                                 vec3(0, 0, -555), white));
     objects_list[object_count++] = new quad(point3(0, 0, 555), vec3(555, 0, 0),
                                 vec3(0, 555, 0), white));
+
     //boxes
     hittable_list* box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
     box1 = new rotate_y(box1, 15);
@@ -133,8 +133,22 @@ void cornell_box(hittable_list* world, camera* cam, curandState* state){
     cudaMalloc(&world, sizeof(hittable_list));
     cudaMalloc(&cam, sizeof(camera));
     create_cornell_box<<<1, 1>>>(d_world, d_camera, state);
-    CHECK_CUDA(cudaGetlastError());
     CHECK_CUDA(cudaDeviceSynchronize());
+}
+
+__global__ void render(float* output_image, hittable_list* world, camera* cam, curandState* render_states){
+    unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
+    unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
+    if (row >= cam->image_height || col >= cam->image_width) return;
+    vec3 pixel_color;
+    unsigned int pixel_idx = row*image_width + col;
+    curandState local_rand_state = render_states[row*image_width+col];
+    pixel_color = cam->render(row, col, world, &local_rand_state);
+    unsigned int output_idx = pixel_idx*3;
+    #pragma unroll 3
+    for(int i = 0; i < 3; i++)
+        output_image[output_idx+i] = pixel_color[i]; 
+    render_states[pixel_idx] = local_rand_state; //wrtb if need more frames
 }
 
 int main() {
@@ -157,11 +171,11 @@ int main() {
   }
 
   //after creating scene get the camer details and alloc space for the output image using image_height and image_width
-
+  float* output_image;
   checkCudaErrors(cudaMallocManaged((void**) &output_image, output_image_size*CH*sizeof(float)));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
   dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE), CEIL_DIV(image_height, TILE_SIZE), 1);
-  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(output_image, image_width, image_height);
+  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(output_image, d_world, d_cam, d_render_states);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
