@@ -152,13 +152,14 @@ __global__ void render(float* output_image, hittable_list* world, camera* cam, c
 }
 
 int main() {
+  int image_width;
+  int image_height;
+  float aspect_ratio;
+  
   //get random states
-  curandState* d_render_states;
   curandState* d_init_rand_state;
-  cudaMalloc((void**) &d_render_states, output_image_size*sizeof(curandState));
   cudaMalloc((void**) &d_init_rand_state, 1*sizeof(curandState));
   rand_init_states<<<1, 1>>>(d_init_rand_state,seed);
-  rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(image_width, image_height, d_render_states, seed);
   CHECK_CUDA(cudaGetlastError());
   CHECK_CUDA(cudaDeviceSynchronize());
   
@@ -166,13 +167,33 @@ int main() {
   camera* d_cam;
   //create the scene use the init state rand
   switch (scene_number) {
-  case 1: cornell_box(d_world, d_cam, d_init_rand_state); break;
-  default: cornell_box(d_world, d_cam, d_init_rand_state); break;
+  case 1: 
+    image_width = 600;
+    aspect_ratio=1.0f;
+    image_height = int(image_width / aspect_ratio);
+    image_height = image_height < 1 ? 1 : image_height;
+    cornell_box(d_world, d_cam, d_init_rand_state); 
+    break;
+  default: 
+    image_width = 600;
+    aspect_ratio=1.0f;
+    image_height = int(image_width / aspect_ratio);
+    image_height = image_height < 1 ? 1 : image_height;
+    cornell_box(d_world, d_cam, d_init_rand_state); 
+    break;
   }
 
   //after creating scene get the camer details and alloc space for the output image using image_height and image_width
+  unsigned int output_image_size = image_width * image_height;
+  curandState* d_render_states;
+  cudaMalloc((void**) &d_render_states, output_image_size*sizeof(curandState));
+  rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(image_width, image_height, d_render_states, seed);
+  CHECK_CUDA(cudaGetlastError());
+  CHECK_CUDA(cudaDeviceSynchronize());
+
   float* d_output_image;
-  float* h_output_image = malloc(output_image_size*CH*sizeof(float));
+  float* h_output_image;
+  h_output_image = malloc(output_image_size*CH*sizeof(float));
   checkCudaErrors(cudaMallocManaged((void**) &d_output_image, output_image_size*CH*sizeof(float)));
   cudaMalloc(&d_output_image, output_image_size*CH*sizeof(float));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);

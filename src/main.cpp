@@ -95,6 +95,7 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
   cam.defocus_angle = 0;
 
+  world = hittable_list(make_shared<bvh_node>(world));
   cam.render(world);
 }
 void cornell_smoke() {

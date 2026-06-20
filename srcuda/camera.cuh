@@ -58,44 +58,13 @@ private:
     defocus_disk_v = v * defocus_radius;
   }
 
-  __device__ color ray_color(const ray &r, const hittable &world, int depth, curandState* state) {
-    if (depth <= 0) {
-      return color(0., 0., 0.);
-    }
-    hit_record record;
-
-    // if ray hits nothing return background;
-    if (!world.hit(r, interval(0.0001, infinity), record)) {
-      if (use_sky_gradient) {
-        vec3 unit_vector_r = unit_vector(r.direction());
-        // go from [-1, 1] to [0, 1]
-        float a = (unit_vector_r.y() + 1.0) * 0.5;
-        color white(1., 1., 1.);
-        color blue(0.5, 0.7, 1.0);
-        color c = (1 - a) * white + a * blue;
-        return c;
-      }
-      return background;
-    }
-    ray scattered;
-    color attenuation;
-    color color_from_emission =
-        record.mat->emitted(record.u, record.v, record.p);
-    if (!record.mat->scatter(r, record, attenuation, scattered, state)) {
-      return color_from_emission;
-    }
-    color color_from_scatter =
-        attenuation * ray_color(scattered, world, depth - 1, state);
-    return color_from_scatter + color_from_emission;
-  }
-
-  __device__ color ray_color2(const ray& r, const hittable* world, int depth, curandState* state){
-    color current_attenuation = color(1.f, 1.f, 1.f);
+  __device__ color ray_color(const ray& r, const hittable* world, int depth, curandState* state){
+    color final_color = color(0.f, 0.f, 0.f);
+    color throughput = color(1.f, 1.f, 1.f);
     ray current_ray = r;
+
     for(int i=0; i< depth; i++){
       hit_record record;
-      ray scattered;
-      color attenuation;
       if (!world->hit(current_ray, interval(0.0001f, infinity), record)) {
         if (use_sky_gradient) {
           vec3 unit_vector_r = unit_vector(current_ray.direction());
@@ -103,19 +72,24 @@ private:
           float a = (unit_vector_r.y() + 1.0) * 0.5;
           color white(1., 1., 1.);
           color blue(0.5, 0.7, 1.0);
-          color c = (1 - a) * white + a * blue;
-          current_attenuation *= c; break;
+          color sky = (1 - a) * white + a * blue;
+          final_color += throughput * sky; break;
         }
-        current_attenuation *= background; break;
+        final_color += throughput* background; break;
       }
       
+      ray scattered;
+      color attenuation;
       color color_from_emission = record.mat->emitted(record.u, record.v, record.p);
+      final_color += throughput * emission;
       if(!record.mat->scatter(current_ray, record, attenuation, scattered, state)) {
-        global_attenuation *= color_from_emission; break;
+        break;
       }
-      color color_from_scatter = attenuation * 
+
+      current_ray = scattered;
+      throughput *= attenuation;
     }
-    return current_attenuation;
+    return final_color;
   }
 
   __device__ ray get_ray(const unsigned int i, const unsigned int j, curandState* state) const {

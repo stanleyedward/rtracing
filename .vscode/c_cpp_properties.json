@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "CUDA",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "/home/stanley/micromamba/envs/rt/targets/x86_64-linux/include",
+                "/home/stanley/micromamba/envs/rt/include"
+            ],
+            "defines": [
+                "__CUDACC__",
+                "__CUDA_ARCH__=860"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
