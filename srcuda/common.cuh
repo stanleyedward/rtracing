@@ -9,6 +9,9 @@
 #include <random>
 #include <curand_kernel.h>
 
+#define CH 3
+#define TILE_SIZE 16
+#define CEIL_DIV(N, M)((N + M - 1) / M)
 
 inline constexpr float pi =
     3.1415926535897932385f; // prob truncated to 7 digits coz float

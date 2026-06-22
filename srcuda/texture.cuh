@@ -49,31 +49,26 @@ public:
   }
 };
 
-class image_texture : public texture { //figure how this will work.
-private:
-  rtw_image image;
+class image_texture: public texture {
+  private:
+    unsigned char* data;
+    unsigned int width;
+    unsigned int height;
+    color debug_color = color(0.f, 0.1f, 0.1f);
 
-public:
-  __device__ image_texture(const char *filename) : image(filename) {}
+  public: 
+    __device__ image_texture(GPUImage img) : data(img.data), width(img.width), height(img.height) {}
+    __device__ image_texture(unsigned char* data, unsigned int width, unsigned int height) : data(data), width(width), height(height) {}
 
-  __device__ color value(float u, float v, const point3 &position) const override {
-    // if not texture found, return cyan for debugging
-    if (image.height() <= 0)
-      return color(0, 1, 1);
-
-    // clamp input tex coords to [0, 1] x [1, 0]
-    u = interval(0, 1).clamp(u);
-    v = 1.0 - interval(0, 1).clamp(v);
-
-    int i = int(u * image.width());
-    int j = int(v * image.height());
-    const unsigned char *pixel = image.pixel_data(i, j);
-
-    float color_scale = 1.0 / 255.0;
-    color pixel_color = color(color_scale * pixel[0], color_scale * pixel[1],
-                              color_scale * pixel[2]);
-    return pixel_color;
-  }
+    __device__ color value(float u, float v, const point3& position) const override {
+      if (height <=0 || width <=0) return debug_color;
+      int i = min(u * width, width-1);
+      int j = min(v * height, height-1);
+      int idx = (j*width + i) * CH;
+      float s = 1.f / 255.f;
+      color pixel_color = color(s*data[idx], s*[data+1], s*[data+2]);
+      return pixel_color
+    }
 };
 
 class noise_texture : public texture {

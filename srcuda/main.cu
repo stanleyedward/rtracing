@@ -1,9 +1,7 @@
+#include "rtw_stub.h"
 #include <iostream>
 #include "vec3.cuh"
 #include "ray.cuh"
-
-#define TILE_SIZE 16
-#define CEIL_DIV(N, M)((N + M - 1) / M)
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define CHECK_CUDA(val) check_cuda( (val), #val, __FILE__, __LINE__ )
@@ -14,6 +12,24 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
         cudaDeviceReset();
         exit(99);
     }
+}
+
+struct GPUImage {
+    unsigned char* data;
+    unsigned int width;
+    unsigned int height;
+    unsigned int channels;
+};
+
+GPUImage load_image_to_gpu(const char* filename) {
+    GPUImage img;
+    unsigned char* h_data = stbi_load(filename, &img.width, &img.height, &img.channels, CH);
+
+    size_t size = img.width * img.height * CH;
+    cudaMalloc(&img.data, size* sizeof(unsigned char));
+    cudaMemcpy(img.data, h_data, size*sizeof(unsigned char), cudaMemcpyHostToDevice);
+    stbi_image_free(h_data);
+    return img;
 }
 
 void cornell_box() {
@@ -73,7 +89,7 @@ void cornell_box() {
                    .count()
             << "ms\n";
 }
-__global__ void create_cornell_box(hittable_list* world, camera* cam,curandState* state) {
+__global__ void create_cornell_box(hittable_list* world, camera* cam, GPUImage* textures, curandState* state) {
     if(!(threadIdx.x == 0 && blockIdx.x == 0)) return;
     //init_world
     hittable** objects_list;
@@ -84,6 +100,7 @@ __global__ void create_cornell_box(hittable_list* world, camera* cam,curandState
     auto white = new lambertian(color(.73, .73, .73));
     auto green = new lambertian(color(.12, .45, .15));
     auto light = new diffuse_light(color(15, 15, 15));
+    auto junior_tex = new image_texture(textures[0]);
     
     objects_list[object_count++] = new quad(point3(555, 0, 0), vec3(0, 555, 0),
                                 vec3(0, 0, 555), green));
@@ -130,9 +147,19 @@ __global__ void create_cornell_box(hittable_list* world, camera* cam,curandState
 }
 
 void cornell_box(hittable_list* world, camera* cam, curandState* state){
+    
+    GPUImage textures[2];
+    int num_textures=0;
+
+    textures[num_textures++] = load_image_to_gpu("textures/junior.png");
+    textures[num_textures++] = load_image_to_gpu("textures/earthmap.jpg");
+
+    GPUImage* d_textures;
+    cudaMalloc(&d_textures, num_textures*sizeof(GPUImage));
+    cudaMemcpy(d_textures, textures, num_textures*sizeof(GPUImage, cudaMemcpyHostToDevice);
     cudaMalloc(&world, sizeof(hittable_list));
     cudaMalloc(&cam, sizeof(camera));
-    create_cornell_box<<<1, 1>>>(d_world, d_camera, state);
+    create_cornell_box<<<1, 1>>>(d_world, d_camera, d_textures, state);
     CHECK_CUDA(cudaDeviceSynchronize());
 }
 
