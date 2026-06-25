@@ -29,6 +29,7 @@ public:
   __device__ virtual ~hittable() = default; // or {}
   __device__ virtual bool hit(const ray &r, interval ray_t, hit_record &record) const = 0;
   __device__ virtual aabb bounding_box() const = 0;
+  __device__ virtual bool is_bvh() const {return false;}
 };
 
 class translate : public hittable {
