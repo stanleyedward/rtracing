@@ -57,8 +57,8 @@ class image_texture: public texture {
     color debug_color = color(0.f, 0.1f, 0.1f);
 
   public: 
-    __device__ image_texture(GPUImage img) : data(img.data), width(img.width), height(img.height) {}
     __device__ image_texture(unsigned char* data, unsigned int width, unsigned int height) : data(data), width(width), height(height) {}
+    __device__ image_texture(GPUImage img) : image_texture(img.data, img.width, img.height) {}
 
     __device__ color value(float u, float v, const point3& position) const override {
       if (height <=0 || width <=0) return debug_color;
@@ -67,7 +67,7 @@ class image_texture: public texture {
       int idx = (j*width + i) * CH;
       float s = 1.f / 255.f;
       color pixel_color = color(s*data[idx], s*[data+1], s*[data+2]);
-      return pixel_color
+      return pixel_color;
     }
 };
 

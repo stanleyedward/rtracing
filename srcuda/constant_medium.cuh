@@ -42,7 +42,7 @@ public:
 
     float ray_length = r.direction().length();
     float distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-    float hit_distance = neg_inv_density * std::log(random_float());
+    float hit_distance = neg_inv_density * logf(random_float());
 
     if (hit_distance > distance_inside_boundary)
       return false;

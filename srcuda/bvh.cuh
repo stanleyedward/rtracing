@@ -91,6 +91,57 @@ class bvh_node_gpu : public hittable {
 
     __device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
       // TODO: tree traversal code
+      hittable* stack[64];
+      int ptr = 0;
+      hittable* node = (hittable*) this;
+      bool hit_anything = false;
+      interval closest = ray_t;
+      hit_record tmp;
+
+      do{
+        bvh_node* bvh = (bvh_node*)node;
+        hittable* childL =  bvh->left;
+        hittable* childR =  bvh->right;
+        
+        bool hitL = childL->bounding_box().hit(r, closest); //first check if hit childs bbox
+        bool hitR = childR->bounding_box().hit(r, closest);
+
+        //if hit child and child is not a bvh -> set hitL = false else if its not a child it hitL remains true.
+        if (hitL && !childL->is_bvh()) {
+          if (childL->hit(r, closest, tmp)) {
+            hit_anything=true;
+            closest.max = tmp.t;
+            rec = tmp;
+          }
+          hitL = false;
+        }
+
+        if(hitR && !childR->is_bvh()){
+          if(childR->hit(r, closest, tmp)) {
+              hit_anything = true;
+              closest.max = tmp.t;
+              rec = tmp;
+            {
+            hitR = false;
+        }
+
+        bool traverseL = hitL && childL->is_bvh();
+        bool traverseR = hitR && childR->is_bvh();
+
+        if(!traverseL && !traverseR){
+          if(ptr > 0){
+            node = stack[--ptr]; 
+          }
+          else 
+            break;
+        }
+        else{
+          node = traveseL? childL : childR;
+          if(traveseL && traverseR)
+            stack[ptr++] = childR;
+        }
+      } while(true);
+      return hit_anything;
     }
     __device__ aabb bounding_box() const override { return bbox; }
 };
