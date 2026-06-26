@@ -173,9 +173,9 @@ int main() {
 
   float *d_output_image;
   float *h_output_image;
-  h_output_image = malloc(output_image_size * CH * sizeof(float));
-  checkCudaErrors(cudaMallocManaged((void **)&d_output_image,
-                                    output_image_size * CH * sizeof(float)));
+  h_output_image = (float*)malloc(output_image_size * CH * sizeof(float));
+//   checkCudaErrors(cudaMallocManaged((void **)&d_output_image,
+//                                     output_image_size * CH * sizeof(float)));
   cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
   dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE),
@@ -193,18 +193,16 @@ int main() {
   std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
   for (int i = image_height - 1; i >= 0; i--) {
     for (int j = 0; j < image_width; j++) {
-      size_t pixel_index = i * 3 * image_width + j * 3;
-      float r = output_image[pixel_index + 0];
-      float g = output_image[pixel_index + 1];
-      float b = output_image[pixel_index + 2];
-      int ir = int(255.99 * r);
-      int ig = int(255.99 * g);
-      int ib = int(255.99 * b);
-      std::cout << ir << " " << ig << " " << ib << "\n";
+      size_t pixel_index = (i * image_width + j) * 3;
+      float r = h_output_image[pixel_index + 0];
+      float g = h_output_image[pixel_index + 1];
+      float b = h_output_image[pixel_index + 2];
+      
+      write_color(std::cout, r, g, b);
     }
   }
 
   // free
-  checkCudaErrors(cudaFree(output_image));
+  checkCudaErrors(cudaFree(d_output_image));
   return 0;
 }

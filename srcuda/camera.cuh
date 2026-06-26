@@ -145,15 +145,17 @@ public:
   color background;
   bool use_sky_gradient = false;
 
-  __device__ vec3 render(const unsigned int row, const unsigned int col,
+  __device__ color render(const unsigned int row, const unsigned int col,
                          const hittable *world,
                          curandState *state) { // TODO change this later
+    interval color_intensity = interval(0.000f, 0.999f);
     color pixel_color(0., 0., 0.);
     for (int sample = 0; sample < samples_per_pixel; sample++) {
       ray r = get_ray(col, row, state);
       pixel_color += ray_color(r, world, max_depth, state);
     }
-    return linear_to_gamma(pixel_color * pixel_sample_scale);
+    color gamma_corrected_color = linear_to_gamma(pixel_color * pixel_sample_scale);
+    return color_intensity.clamp(gamma_corrected_color);
   }
 };
 

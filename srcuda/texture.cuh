@@ -72,7 +72,7 @@ public:
     int j = min(v * height, height - 1);
     int idx = (j * width + i) * CH;
     float s = 1.f / 255.f;
-    color pixel_color = color(s * data[idx], s * [data + 1], s * [data + 2]);
+    color pixel_color = color(s * data[idx], s * data[idx + 1], s * data[idx + 2]);
     return pixel_color;
   }
 };

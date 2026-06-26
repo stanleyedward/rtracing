@@ -94,10 +94,6 @@ public:
   }
 };
 
-// inline const aabb aabb::empty =
-//     aabb(interval::empty, interval::empty, interval::empty);
-// inline const aabb aabb::universe =
-//     aabb(interval::universe, interval::universe, interval::universe);
 __device__ inline aabb operator+(const aabb &bbox, const vec3 &offset) {
   return aabb(bbox.x + offset.x(), bbox.y + offset.y(), bbox.z + offset.z());
 }

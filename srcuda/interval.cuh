@@ -1,8 +1,6 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
-// #include <limits>
-// inline constexpr float infinity = std::numeric_limits<float>::infinity();
 inline constexpr float infinity = FLT_MAX;
 
 class interval {
@@ -36,15 +34,15 @@ public:
     return x;
   }
 
+  __host__ __device__ vec3 clamp(vec3 v) const{
+    return vec3(clamp(v.x()), clamp(v.y()), clamp(v.z()));
+  }
+
   __device__ static interval empty() { return interval(+infinity, -infinity); }
   __device__ static interval universe() {
     return interval(-infinity, +infinity);
   }
 };
-
-// inline constexpr interval interval::empty = interval(+infinity, -infinity);
-// inline constexpr interval interval::universe = interval(-infinity,
-// +infinity);
 
 __device__ inline interval operator+(const interval &interv,
                                      float displacement) {
