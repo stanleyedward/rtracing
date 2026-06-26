@@ -58,12 +58,13 @@ private:
     defocus_disk_v = v * defocus_radius;
   }
 
-  __device__ color ray_color(const ray& r, const hittable* world, int depth, curandState* state){
+  __device__ color ray_color(const ray &r, const hittable *world, int depth,
+                             curandState *state) {
     color final_color = color(0.f, 0.f, 0.f);
     color throughput = color(1.f, 1.f, 1.f);
     ray current_ray = r;
 
-    for(int i=0; i< depth; i++){
+    for (int i = 0; i < depth; i++) {
       hit_record record;
       if (!world->hit(current_ray, interval(0.0001f, infinity), record)) {
         if (use_sky_gradient) {
@@ -73,16 +74,20 @@ private:
           color white(1., 1., 1.);
           color blue(0.5, 0.7, 1.0);
           color sky = (1 - a) * white + a * blue;
-          final_color += throughput * sky; break;
+          final_color += throughput * sky;
+          break;
         }
-        final_color += throughput* background; break;
+        final_color += throughput * background;
+        break;
       }
-      
+
       ray scattered;
       color attenuation;
-      color color_from_emission = record.mat->emitted(record.u, record.v, record.p);
+      color color_from_emission =
+          record.mat->emitted(record.u, record.v, record.p);
       final_color += throughput * emission;
-      if(!record.mat->scatter(current_ray, record, attenuation, scattered, state)) {
+      if (!record.mat->scatter(current_ray, record, attenuation, scattered,
+                               state)) {
         break;
       }
 
@@ -92,7 +97,8 @@ private:
     return final_color;
   }
 
-  __device__ ray get_ray(const unsigned int i, const unsigned int j, curandState* state) const {
+  __device__ ray get_ray(const unsigned int i, const unsigned int j,
+                         curandState *state) const {
     // gives us a camera ray from defocus disk directed at randomly sampled
     // point around the viewport pixel location i,j.
     vec3 offset = sample_square(state);
@@ -106,12 +112,12 @@ private:
     return ray(ray_origin, ray_direction, ray_time);
   }
 
-  __device__ point3 defocus_disk_sample(curandState* state) const {
+  __device__ point3 defocus_disk_sample(curandState *state) const {
     point3 p = random_in_unit_disk(state);
     return camera_center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
   }
 
-  __device__ vec3 sample_square(curandState* state) const {
+  __device__ vec3 sample_square(curandState *state) const {
     // returns a vector to a random point in the [-0.5, -0.5] to [+0.5, +0.5]
     // unit square space.
     return vec3(random_float(state) - 0.5, random_float(state) - 0.5, 0.0);
@@ -134,11 +140,14 @@ public:
 
   // focus
   float defocus_angle = 0.0;
-  float focus_distance = 10.0; // distance from lens to focal plane in world space
+  float focus_distance =
+      10.0; // distance from lens to focal plane in world space
   color background;
   bool use_sky_gradient = false;
 
-  __device__ vec3 render(const unsigned int row, const unsigned int col, const hittable* world, curandState* state) { //TODO change this later
+  __device__ vec3 render(const unsigned int row, const unsigned int col,
+                         const hittable *world,
+                         curandState *state) { // TODO change this later
     color pixel_color(0., 0., 0.);
     for (int sample = 0; sample < samples_per_pixel; sample++) {
       ray r = get_ray(col, row, state);

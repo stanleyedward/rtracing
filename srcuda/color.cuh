@@ -7,15 +7,16 @@
 
 using color = vec3;
 
-__host__ __device__  inline float linear_to_gamma(float linear_component) {
+__host__ __device__ inline float linear_to_gamma(float linear_component) {
   if (linear_component > 0) {
     return sqrtf(linear_component);
   }
   return 0;
 }
 
-__device__ inline color linear_to_gamma(color lin_color){
-  return color(linear_to_gamma(lin_color.r()), linear_to_gamma(lin_color.g()), linear_to_gamma(lin_color.b()));
+__device__ inline color linear_to_gamma(color lin_color) {
+  return color(linear_to_gamma(lin_color.r()), linear_to_gamma(lin_color.g()),
+               linear_to_gamma(lin_color.b()));
 }
 
 __host__ inline void write_color(std::ostream &out, const color &pixel_color) {

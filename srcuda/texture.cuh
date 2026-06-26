@@ -22,24 +22,25 @@ public:
   __device__ solid_color(float red, float green, float blue)
       : solid_color(color(red, green, blue)) {}
 
-  __device__ color value(float u, float v, const point3 &position) const override {
+  __device__ color value(float u, float v,
+                         const point3 &position) const override {
     return albedo;
   }
 };
 
 class checker_texture : public texture {
 private:
-  texture* even;
-  texture* odd;
+  texture *even;
+  texture *odd;
   float inv_scale;
 
 public:
-  __device__ checker_texture(float scale, texture* even,
-                  texture* odd)
+  __device__ checker_texture(float scale, texture *even, texture *odd)
       : inv_scale(1.0 / scale), even(even), odd(odd) {}
   __device__ checker_texture(float scale, const color &c1, const color &c2)
-      : checker_texture(scale, new solid_color(c1), new solid_color(c2)){}
-  __device__ color value(float u, float v, const point3 &position) const override {
+      : checker_texture(scale, new solid_color(c1), new solid_color(c2)) {}
+  __device__ color value(float u, float v,
+                         const point3 &position) const override {
     int xInt = int(floorf(inv_scale * position.x()));
     int yInt = int(floorf(inv_scale * position.y()));
     int zInt = int(floorf(inv_scale * position.z()));
@@ -49,26 +50,31 @@ public:
   }
 };
 
-class image_texture: public texture {
-  private:
-    unsigned char* data;
-    unsigned int width;
-    unsigned int height;
-    color debug_color = color(0.f, 0.1f, 0.1f);
+class image_texture : public texture {
+private:
+  unsigned char *data;
+  unsigned int width;
+  unsigned int height;
+  color debug_color = color(0.f, 0.1f, 0.1f);
 
-  public: 
-    __device__ image_texture(unsigned char* data, unsigned int width, unsigned int height) : data(data), width(width), height(height) {}
-    __device__ image_texture(GPUImage img) : image_texture(img.data, img.width, img.height) {}
+public:
+  __device__ image_texture(unsigned char *data, unsigned int width,
+                           unsigned int height)
+      : data(data), width(width), height(height) {}
+  __device__ image_texture(GPUImage img)
+      : image_texture(img.data, img.width, img.height) {}
 
-    __device__ color value(float u, float v, const point3& position) const override {
-      if (height <=0 || width <=0) return debug_color;
-      int i = min(u * width, width-1);
-      int j = min(v * height, height-1);
-      int idx = (j*width + i) * CH;
-      float s = 1.f / 255.f;
-      color pixel_color = color(s*data[idx], s*[data+1], s*[data+2]);
-      return pixel_color;
-    }
+  __device__ color value(float u, float v,
+                         const point3 &position) const override {
+    if (height <= 0 || width <= 0)
+      return debug_color;
+    int i = min(u * width, width - 1);
+    int j = min(v * height, height - 1);
+    int idx = (j * width + i) * CH;
+    float s = 1.f / 255.f;
+    color pixel_color = color(s * data[idx], s * [data + 1], s * [data + 2]);
+    return pixel_color;
+  }
 };
 
 class noise_texture : public texture {

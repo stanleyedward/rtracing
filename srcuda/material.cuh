@@ -13,23 +13,25 @@ public:
     return color(0, 0, 0);
   }
   __device__ virtual bool scatter(const ray &r_in, const hit_record &record,
-                       color &attenuation, ray &scattered, curandState* state) const {
+                                  color &attenuation, ray &scattered,
+                                  curandState *state) const {
     return false;
   }
 };
 
 class lambertian : public material {
 private:
-  texture* tex;
+  texture *tex;
 
 public:
   __device__ lambertian(const color &albedo) : tex(new solid_color(albedo)) {}
-  __device__ lambertian(texture* tex) : tex(tex) {}
+  __device__ lambertian(texture *tex) : tex(tex) {}
 
-  __device__ bool scatter(const ray &r_in, const hit_record &record, color &attenuation,
-               ray &scattered, curandState* state) const override {
+  __device__ bool scatter(const ray &r_in, const hit_record &record,
+                          color &attenuation, ray &scattered,
+                          curandState *state) const override {
     vec3 lambertian_scatttered_direction =
-        record.normal + random_unit_vector(state);          // lambertian
+        record.normal + random_unit_vector(state);     // lambertian
     if (lambertian_scatttered_direction.near_zero()) { // edge
       lambertian_scatttered_direction = record.normal;
     }
@@ -41,10 +43,10 @@ public:
 
 class diffuse_light : public material {
 private:
-  texture* tex;
+  texture *tex;
 
 public:
-  __device__ diffuse_light(texture* tex) : tex(tex) {}
+  __device__ diffuse_light(texture *tex) : tex(tex) {}
   __device__ diffuse_light(const color &emit) : tex(new solid_color(emit)) {}
   __device__ color emitted(float u, float v, const point3 &p) const override {
     return tex->value(u, v, p);
@@ -55,8 +57,9 @@ class metal : public material {
 public:
   __device__ metal(const color &albedo, float fuzz)
       : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
-  __device__ bool scatter(const ray &r_in, const hit_record &record, color &attenuation,
-               ray &scattered, curandState* state) const override {
+  __device__ bool scatter(const ray &r_in, const hit_record &record,
+                          color &attenuation, ray &scattered,
+                          curandState *state) const override {
     vec3 reflected = reflect(r_in.direction(), record.normal);
     reflected =
         unit_vector(reflected) + (fuzz * random_unit_vector(state)); // add fuzz
@@ -72,9 +75,11 @@ private:
 
 class dielectric : public material {
 public:
-  __device__ dielectric(float refractive_index) : refractive_index(refractive_index) {}
-  __device__ bool scatter(const ray &r_in, const hit_record &record, color &attenuation,
-               ray &scattered, curandState* state) const override {
+  __device__ dielectric(float refractive_index)
+      : refractive_index(refractive_index) {}
+  __device__ bool scatter(const ray &r_in, const hit_record &record,
+                          color &attenuation, ray &scattered,
+                          curandState *state) const override {
     attenuation = color(1.0, 1.0, 1.0);
     float ri = record.front_face ? (1.0 / refractive_index) : refractive_index;
 
@@ -86,8 +91,9 @@ public:
     bool cannot_refract = ri * sin_theta > 1.0;
     vec3 direction;
 
-    if (cannot_refract || reflectance(cos_theta, ri) >
-                              random_float(state)) { // total internal reflection
+    if (cannot_refract ||
+        reflectance(cos_theta, ri) >
+            random_float(state)) { // total internal reflection
       direction = reflect(unit_direction, record.normal);
     } else {
       direction = refract(unit_direction, record.normal, ri);
@@ -109,14 +115,15 @@ private:
 
 class isotropic : public material {
 private:
-  texture* tex;
+  texture *tex;
 
 public:
   __device__ isotropic(const color &abledo) : tex(new solid_color(abledo)) {}
-  __device__ isotropic(texture* tex) : tex(tex) {}
+  __device__ isotropic(texture *tex) : tex(tex) {}
 
-  __device__ bool scatter(const ray &r_in, const hit_record &record, color &attenuation,
-               ray &scattered, curandState* state) const override {
+  __device__ bool scatter(const ray &r_in, const hit_record &record,
+                          color &attenuation, ray &scattered,
+                          curandState *state) const override {
     scattered = ray(record.p, random_unit_vector(state), r_in.time());
     attenuation = tex->value(record.u, record.v, record.p);
     return true;

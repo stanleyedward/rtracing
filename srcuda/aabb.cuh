@@ -60,14 +60,19 @@ public:
       float t1 = (ax_interval.max - ray_origin[axis]) * adinv;
 
       if (t0 < t1) {
-        if (t0 > ray_t.min) ray_t.min = t0;
-        if (t1 < ray_t.max) ray_t.max = t1;
+        if (t0 > ray_t.min)
+          ray_t.min = t0;
+        if (t1 < ray_t.max)
+          ray_t.max = t1;
       } else {
-        if (t1 > ray_t.min) ray_t.min = t1;
-        if (t0 < ray_t.max) ray_t.max = t0;
+        if (t1 > ray_t.min)
+          ray_t.min = t1;
+        if (t0 < ray_t.max)
+          ray_t.max = t0;
       }
 
-      if (ray_t.max < ray_t.min) return false;
+      if (ray_t.max < ray_t.min)
+        return false;
     }
     return true;
   }
@@ -80,8 +85,13 @@ public:
   }
 
   // static const aabb empty, universe;
-  __device__ static aabb empty() {return aabb(interval::empty(), interval::empty(), interval::empty()); }
-  __device__ static aabb universe() {return aabb(interval::universe(), interval::universe(), interval::universe()); }
+  __device__ static aabb empty() {
+    return aabb(interval::empty(), interval::empty(), interval::empty());
+  }
+  __device__ static aabb universe() {
+    return aabb(interval::universe(), interval::universe(),
+                interval::universe());
+  }
 };
 
 // inline const aabb aabb::empty =

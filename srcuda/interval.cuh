@@ -10,7 +10,8 @@ public:
   float min, max;
 
   __device__ interval() : min(+infinity), max(-infinity) {}
-  __device__ interval(float rayT_min, float rayT_max) : min(rayT_min), max(rayT_max) {}
+  __device__ interval(float rayT_min, float rayT_max)
+      : min(rayT_min), max(rayT_max) {}
   __device__ interval(const interval &a, const interval &b) {
     min = a.min <= b.min ? a.min : b.min;
     max = a.max >= b.max ? a.max : b.max;
@@ -35,17 +36,22 @@ public:
     return x;
   }
 
-  __device__ static interval empty() {return interval(+infinity, -infinity);}
-  __device__ static interval universe() {return interval(-infinity, +infinity);}
+  __device__ static interval empty() { return interval(+infinity, -infinity); }
+  __device__ static interval universe() {
+    return interval(-infinity, +infinity);
+  }
 };
 
 // inline constexpr interval interval::empty = interval(+infinity, -infinity);
-// inline constexpr interval interval::universe = interval(-infinity, +infinity);
+// inline constexpr interval interval::universe = interval(-infinity,
+// +infinity);
 
-__device__ inline interval operator+(const interval &interv, float displacement) {
+__device__ inline interval operator+(const interval &interv,
+                                     float displacement) {
   return interval(interv.min + displacement, interv.max + displacement);
 }
-__device__ inline interval operator+(float displacement, const interval &interv) {
+__device__ inline interval operator+(float displacement,
+                                     const interval &interv) {
   return interv + displacement;
 }
 #endif

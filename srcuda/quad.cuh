@@ -12,15 +12,14 @@ protected:
   point3 Q;
   vec3 u;
   vec3 v;
-  material* mat;
+  material *mat;
   aabb bbox;
   float D;
   vec3 normal;
   vec3 w;
 
 public:
-  __device__ quad(const point3 &Q, const vec3 &u, const vec3 &v,
-      material* mat)
+  __device__ quad(const point3 &Q, const vec3 &u, const vec3 &v, material *mat)
       : Q(Q), u(u), v(v), mat(mat) {
     vec3 n = cross(u, v);
     normal = unit_vector(n);
@@ -45,7 +44,8 @@ public:
     return true;
   }
 
-  __device__ bool hit(const ray &r, interval ray_t, hit_record &record) const override {
+  __device__ bool hit(const ray &r, interval ray_t,
+                      hit_record &record) const override {
     float denom = dot(normal, r.direction());
     if (fabsf(denom) < 1e-8) {
       return false;
@@ -76,10 +76,11 @@ public:
 
 class tri : public quad {
 public:
-  __device__ tri(const point3 &o, const vec3 &aa, const vec3 &ab, material* m)
+  __device__ tri(const point3 &o, const vec3 &aa, const vec3 &ab, material *m)
       : quad(o, aa, ab, m) {}
 
-  __device__ virtual bool is_interior(float a, float b, hit_record &rec) const override {
+  __device__ virtual bool is_interior(float a, float b,
+                                      hit_record &rec) const override {
     if ((a < 0) || (b < 0) || (a + b > 1))
       return false;
 
@@ -92,14 +93,15 @@ public:
 class ellipse : public quad {
 public:
   __device__ ellipse(const point3 &center, const vec3 &u, const vec3 &v,
-          material* m)
+                     material *m)
       : quad(center, u, v, m) {}
 
   __device__ virtual void set_bounding_box() override {
     bbox = aabb(Q - u - v, Q + u + v);
   }
 
-  __device__ virtual bool is_interior(float a, float b, hit_record &rec) const override {
+  __device__ virtual bool is_interior(float a, float b,
+                                      hit_record &rec) const override {
     if ((a * a + b * b) > 1)
       return false;
 
@@ -111,15 +113,16 @@ public:
 
 class annulus : public quad {
 public:
-  __device__ annulus(const point3 &center, const vec3 &side_A, const vec3 &side_B,
-          float _inner, material* m)
+  __device__ annulus(const point3 &center, const vec3 &side_A,
+                     const vec3 &side_B, float _inner, material *m)
       : quad(center, side_A, side_B, m), inner(_inner) {}
 
   __device__ virtual void set_bounding_box() override {
     bbox = aabb(Q - u - v, Q + u + v);
   }
 
-  __device__ virtual bool is_interior(float a, float b, hit_record &rec) const override {
+  __device__ virtual bool is_interior(float a, float b,
+                                      hit_record &rec) const override {
     auto center_dist = sqrt(a * a + b * b);
     if ((center_dist < inner) || (center_dist > 1))
       return false;
@@ -133,19 +136,19 @@ private:
   float inner;
 };
 
-__device__ inline hittable_list* box(const point3 &a, const point3 &b,
-                                     material* mat) {
+__device__ inline hittable_list *box(const point3 &a, const point3 &b,
+                                     material *mat) {
 
-  auto min = point3(fminf(a.x(), b.x()), fminf(a.y(), b.y()),
-                    fminf(a.z(), b.z()));
-  auto max = point3(fmaxf(a.x(), b.x()), fmaxf(a.y(), b.y()),
-                    fmaxf(a.z(), b.z()));
+  auto min =
+      point3(fminf(a.x(), b.x()), fminf(a.y(), b.y()), fminf(a.z(), b.z()));
+  auto max =
+      point3(fmaxf(a.x(), b.x()), fmaxf(a.y(), b.y()), fmaxf(a.z(), b.z()));
 
   auto dx = vec3(max.x() - min.x(), 0, 0);
   auto dy = vec3(0, max.y() - min.y(), 0);
   auto dz = vec3(0, 0, max.z() - min.z());
 
-  hittable** sides = new hittable*[6];
+  hittable **sides = new hittable *[6];
 
   sides[0] = new quad(point3(min.x(), min.y(), max.z()), dx, dy,
                                mat)); // front

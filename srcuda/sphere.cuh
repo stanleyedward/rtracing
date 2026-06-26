@@ -9,23 +9,21 @@ class sphere : public hittable {
 private:
   ray center;
   float radius;
-  material* mat;
+  material *mat;
   aabb bbox;
 
 public:
   // sphere constructor
-  __device__ sphere(const point3 &static_center, float r, material* mat)
-      : center(static_center, vec3(0, 0, 0)), radius(fmaxf(0.0, r)),
-        mat(mat) {
+  __device__ sphere(const point3 &static_center, float r, material *mat)
+      : center(static_center, vec3(0, 0, 0)), radius(fmaxf(0.0, r)), mat(mat) {
     vec3 rvec = vec3(radius, radius, radius);
     bbox = aabb(static_center - rvec, static_center + rvec);
   }
 
   // moving sphere
   __device__ sphere(const point3 &center1, const point3 &center2, float r,
-         material* mat)
-      : center(center1, center2 - center1), radius(fmaxf(0.0, r)),
-        mat(mat) {
+                    material *mat)
+      : center(center1, center2 - center1), radius(fmaxf(0.0, r)), mat(mat) {
     vec3 rvec = vec3(radius, radius, radius);
     aabb box1(center.at(0) - rvec, center.at(0) + rvec);
     aabb box2(center.at(1) - rvec, center.at(1) + rvec);
@@ -42,7 +40,8 @@ public:
     v = theta / pi;
   }
 
-  __device__ bool hit(const ray &r, interval ray_t, hit_record &record) const override {
+  __device__ bool hit(const ray &r, interval ray_t,
+                      hit_record &record) const override {
     point3 current_center = center.at(r.time());
     vec3 center_minus_point = current_center - r.origin();
     float a = dot(r.direction(), r.direction());

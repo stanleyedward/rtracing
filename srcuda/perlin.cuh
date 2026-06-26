@@ -11,7 +11,7 @@ private:
   int perm_y[point_count];
   int perm_z[point_count];
 
-  __device__ static void perlin_generate_perm(int *p, curandState* state) {
+  __device__ static void perlin_generate_perm(int *p, curandState *state) {
     for (int i = 0; i < point_count; i++) {
       p[i] = i;
     }
@@ -19,7 +19,7 @@ private:
     permute(p, point_count, state);
   }
 
-  __device__ static void permute(int *p, int count, curandState* state) {
+  __device__ static void permute(int *p, int count, curandState *state) {
     for (int i = count - 1; i > 0; i--) { // fisher-yates shuffle
       int target = random_int(0, i, state);
       int temp = p[i];
@@ -27,7 +27,8 @@ private:
       p[target] = temp;
     }
   }
-  __device__ static float perlin_interp(vec3 c[2][2][2], float u, float v, float w) {
+  __device__ static float perlin_interp(vec3 c[2][2][2], float u, float v,
+                                        float w) {
 
     float uu = u * u * (3 - 2 * u);
     float vv = v * v * (3 - 2 * v);
@@ -48,7 +49,7 @@ private:
   }
 
 public:
-  __device__ perlin(curandState* state) {
+  __device__ perlin(curandState *state) {
     for (int i = 0; i < point_count; i++) {
       randvec[i] = unit_vector(vec3::random(-1, 1, state));
     }

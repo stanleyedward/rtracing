@@ -14,7 +14,7 @@ public:
   float t;
   vec3 normal;
   bool front_face;
-  material* mat;
+  material *mat;
   float u;
   float v;
 
@@ -27,25 +27,27 @@ public:
 class hittable {
 public:
   __device__ virtual ~hittable() = default; // or {}
-  __device__ virtual bool hit(const ray &r, interval ray_t, hit_record &record) const = 0;
+  __device__ virtual bool hit(const ray &r, interval ray_t,
+                              hit_record &record) const = 0;
   __device__ virtual aabb bounding_box() const = 0;
-  __device__ virtual bool is_bvh() const {return false;}
+  __device__ virtual bool is_bvh() const { return false; }
 };
 
 class translate : public hittable {
 private:
-  hittable* object;
+  hittable *object;
   vec3 offset;
   aabb bbox;
 
 public:
-  __device__ translate(hittable* object, const vec3 &offset)
+  __device__ translate(hittable *object, const vec3 &offset)
       : object(object), offset(offset) {
     bbox = object->bounding_box() + offset;
   }
 
   __device__ aabb bounding_box() const override { return bbox; }
-  __device__ bool hit(const ray &r, interval ray_t, hit_record &record) const override {
+  __device__ bool hit(const ray &r, interval ray_t,
+                      hit_record &record) const override {
     ray offset_r(r.origin() - offset, r.direction(), r.time());
     if (!object->hit(offset_r, ray_t, record))
       return false;
@@ -56,13 +58,13 @@ public:
 
 class rotate_y : public hittable {
 private:
-  hittable* object;
+  hittable *object;
   aabb bbox;
   float sin_theta;
   float cos_theta;
 
 public:
-  __device__ rotate_y(hittable* object, float angle) : object(object) {
+  __device__ rotate_y(hittable *object, float angle) : object(object) {
     float radians = degree_to_radian(angle);
     sin_theta = sinf(radians);
     cos_theta = cosf(radians);
@@ -94,7 +96,8 @@ public:
   }
 
   __device__ aabb bounding_box() const override { return bbox; }
-  __device__ bool hit(const ray &r, interval ray_t, hit_record &record) const override {
+  __device__ bool hit(const ray &r, interval ray_t,
+                      hit_record &record) const override {
     // transform the ray from world to object space
     point3 origin =
         point3((cos_theta * r.origin().x()) - (sin_theta * r.origin().z()),

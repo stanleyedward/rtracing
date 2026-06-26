@@ -9,23 +9,25 @@
 
 class constant_medium : public hittable {
 private:
-  hittable* boundary;
+  hittable *boundary;
   float neg_inv_density;
-  hittable* phase_function;
+  hittable *phase_function;
 
 public:
-  __device__ constant_medium(hittable* boundary, float density,
-                  texture* tex)
+  __device__ constant_medium(hittable *boundary, float density, texture *tex)
       : boundary(boundary), neg_inv_density(-1 / density),
         phase_function(new isotropic(tex)) {}
-  __device__ constant_medium(hittable* boundary, float density,
-                  const color &albedo)
+  __device__ constant_medium(hittable *boundary, float density,
+                             const color &albedo)
       : boundary(boundary), neg_inv_density(-1 / density),
         phase_function(new isotropic(albedo)) {}
 
-  __device__ aabb bounding_box() const override { return boundary->bounding_box(); }
+  __device__ aabb bounding_box() const override {
+    return boundary->bounding_box();
+  }
 
-  __device__ bool hit(const ray &r, interval ray_t, hit_record &record) const override {
+  __device__ bool hit(const ray &r, interval ray_t,
+                      hit_record &record) const override {
     hit_record rec1, rec2;
     if (!boundary->hit(r, interval::universe, rec1))
       return false;
