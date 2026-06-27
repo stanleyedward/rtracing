@@ -25,7 +25,7 @@ private:
 
     for (int i = 0; i < depth; i++) {
       hit_record record;
-      if (!world->hit(current_ray, interval(0.0001f, infinity), record)) {
+      if (!world->hit(current_ray, interval(0.0001f, infinity), record, state)) {
         if (use_sky_gradient) {
           vec3 unit_vector_r = unit_vector(current_ray.direction());
           // go from [-1, 1] to [0, 1]

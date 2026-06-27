@@ -42,7 +42,7 @@ public:
   }
 
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record) const override {
+                      hit_record &record, curandState* state) const override {
     float denom = dot(normal, r.direction());
     if (fabsf(denom) < 1e-8) {
       return false;
@@ -109,28 +109,28 @@ public:
 };
 
 class annulus : public quad {
-public:
-  __device__ annulus(const point3 &center, const vec3 &side_A,
-                     const vec3 &side_B, float _inner, material *m)
-      : quad(center, side_A, side_B, m), inner(_inner) {}
+  public:
+    __device__ annulus(const point3 &center, const vec3 &side_A,
+                      const vec3 &side_B, float _inner, material *m)
+        : quad(center, side_A, side_B, m), inner(_inner) {}
 
-  __device__ virtual void set_bounding_box() override {
-    bbox = aabb(Q - u - v, Q + u + v);
-  }
+    __device__ virtual void set_bounding_box() override {
+      bbox = aabb(Q - u - v, Q + u + v);
+    }
 
-  __device__ virtual bool is_interior(float a, float b,
-                                      hit_record &rec) const override {
-    auto center_dist = sqrt(a * a + b * b);
-    if ((center_dist < inner) || (center_dist > 1))
-      return false;
+    __device__ virtual bool is_interior(float a, float b,
+                                        hit_record &rec) const override {
+      auto center_dist = sqrt(a * a + b * b);
+      if ((center_dist < inner) || (center_dist > 1))
+        return false;
 
-    rec.u = a / 2 + 0.5f;
-    rec.v = b / 2 + 0.5f;
-    return true;
-  }
+      rec.u = a / 2 + 0.5f;
+      rec.v = b / 2 + 0.5f;
+      return true;
+    }
 
-private:
-  float inner;
+  private:
+    float inner;
 };
 
 __device__ inline hittable_list *box(const point3 &a, const point3 &b,

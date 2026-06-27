@@ -26,11 +26,11 @@ public:
   }
 
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record) const override {
+                      hit_record &record, curandState* state) const override {
     hit_record rec1, rec2;
-    if (!boundary->hit(r, interval::universe(), rec1))
+    if (!boundary->hit(r, interval::universe(), rec1, state))
       return false;
-    if (!boundary->hit(r, interval(rec1.t + 0.0001, infinity), rec2))
+    if (!boundary->hit(r, interval(rec1.t + 0.0001, infinity), rec2, state))
       return false;
     if (rec1.t < ray_t.min)
       rec1.t = ray_t.min;
@@ -43,7 +43,7 @@ public:
 
     float ray_length = r.direction().length();
     float distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-    float hit_distance = neg_inv_density * logf(random_float());
+    float hit_distance = neg_inv_density * logf(random_float(state));
 
     if (hit_distance > distance_inside_boundary)
       return false;

@@ -31,7 +31,7 @@ public:
   __device__ aabb bounding_box() const override { return bbox; }
 
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record) const override {
+                      hit_record &record, curandState* state) const override {
     hit_record temp_record;
     bool hit_anything = false;
     float closest_hit_so_far = ray_t.max;
@@ -40,7 +40,7 @@ public:
     for (int i = 0; i < list_size; i++) {
       if (objects[i]->hit(
               r, interval(ray_t.min, closest_hit_so_far),
-              temp_record)) { // change rayT_max->closest_hit to get closest obj
+              temp_record, state)) { // change rayT_max->closest_hit to get closest obj
         hit_anything = true;
         closest_hit_so_far = temp_record.t;
         record = temp_record; // record of the closest object hit

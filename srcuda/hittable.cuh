@@ -28,7 +28,7 @@ class hittable {
 public:
   __device__ virtual ~hittable() = default; // or {}
   __device__ virtual bool hit(const ray &r, interval ray_t,
-                              hit_record &record) const = 0;
+                              hit_record &record, curandState* state) const = 0;
   __device__ virtual aabb bounding_box() const = 0;
   __device__ virtual bool is_bvh() const { return false; }
 };
@@ -47,9 +47,9 @@ public:
 
   __device__ aabb bounding_box() const override { return bbox; }
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record) const override {
+                      hit_record &record, curandState* state) const override {
     ray offset_r(r.origin() - offset, r.direction(), r.time());
-    if (!object->hit(offset_r, ray_t, record))
+    if (!object->hit(offset_r, ray_t, record, state))
       return false;
     record.p += offset;
     return true;
@@ -97,7 +97,7 @@ public:
 
   __device__ aabb bounding_box() const override { return bbox; }
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record) const override {
+                      hit_record &record, curandState* state) const override {
     // transform the ray from world to object space
     point3 origin =
         point3((cos_theta * r.origin().x()) - (sin_theta * r.origin().z()),
@@ -112,7 +112,7 @@ public:
     ray rotated_r(origin, direction, r.time());
 
     // determine if intersection in rotated object space and where
-    if (!object->hit(rotated_r, ray_t, record))
+    if (!object->hit(rotated_r, ray_t, record, state))
       return false;
     // transform intesrsect from obj to world space;
     record.p = point3((cos_theta * record.p.x()) + (sin_theta * record.p.z()),

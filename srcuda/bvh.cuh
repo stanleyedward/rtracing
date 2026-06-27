@@ -19,7 +19,7 @@ public:
   __device__ bool is_bvh() const override { return true; }
 
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &rec) const override {
+                      hit_record &rec, curandState* state) const override {
     hittable *stack[64];
     int ptr = 0;
     hittable *node = (hittable *)this;
@@ -36,7 +36,7 @@ public:
       bool hitR = childR->bounding_box().hit(r, closest);
 
       if (hitL && !childL->is_bvh()) {
-        if (childL->hit(r, closest, tmp)) {
+        if (childL->hit(r, closest, tmp, state)) {
           hit_anything = true;
           closest.max = tmp.t;
           rec = tmp;
@@ -45,7 +45,7 @@ public:
       }
 
       if (hitR && !childR->is_bvh()) {
-        if (childR->hit(r, closest, tmp)) {
+        if (childR->hit(r, closest, tmp, state)) {
           hit_anything = true;
           closest.max = tmp.t;
           rec = tmp;

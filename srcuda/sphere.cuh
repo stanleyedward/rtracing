@@ -40,7 +40,7 @@ public:
   }
 
   __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record) const override {
+                      hit_record &record, curandState* state) const override {
     point3 current_center = center.at(r.time());
     vec3 center_minus_point = current_center - r.origin();
     float a = dot(r.direction(), r.direction());
