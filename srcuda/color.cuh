@@ -1,7 +1,6 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "interval.cuh"
 #include "vec3.cuh" //removing brakes it xd but the turning off clang-formatting in common.h fixed it
 #include <cmath>
 

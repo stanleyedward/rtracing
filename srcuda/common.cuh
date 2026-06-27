@@ -8,10 +8,19 @@
 #include <memory>
 #include <random>
 #include <curand_kernel.h>
+#include <cfloat>
 
 #define CH 3
 #define TILE_SIZE 16
 #define CEIL_DIV(N, M) ((N + M - 1) / M)
+
+struct GPUImage {
+  unsigned char *data;
+  int width;
+  int height;
+  int channels;
+};
+
 
 inline constexpr float pi =
     3.1415926535897932385f; // prob truncated to 7 digits coz float
@@ -38,19 +47,6 @@ __global__ void rand_init_states(curandState *state, unsigned int seed) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     curand_init(seed, 0, 0, state);
   }
-}
-
-__device__ inline float random_float(curandState *state) {
-  // curand gives (0, 1] doing 1- to mkae it [0, 1)
-  return 1.0f - curand_uniform(state);
-}
-
-__device__ inline float random_float(float min, float max, curandState *state) {
-  return min + (max - min) * random_float(state);
-}
-
-__device__ inline int random_int(int min, int max, curandState *state) {
-  return int(random_float(min, max + 1, state));
 }
 
 // clang-format off

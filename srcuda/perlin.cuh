@@ -1,7 +1,8 @@
 #ifndef PERLIN_H
 #define PERLIN_H
 
-#include "vec3.cuh"
+#include "common.cuh"
+
 class perlin {
 private:
   __device__ static const int point_count = 256;

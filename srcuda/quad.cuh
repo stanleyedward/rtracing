@@ -1,11 +1,8 @@
 #ifndef QUAD_H
 #define QUAD_H
 
-#include "common.cuh"
 #include "hittable.cuh"
 #include "hittable_list.cuh"
-#include "interval.cuh"
-#include "vec3.cuh"
 
 class quad : public hittable {
 protected:
@@ -151,17 +148,17 @@ __device__ inline hittable_list *box(const point3 &a, const point3 &b,
   hittable **sides = new hittable *[6];
 
   sides[0] = new quad(point3(min.x(), min.y(), max.z()), dx, dy,
-                               mat)); // front
+                               mat); // front
   sides[1] = new quad(point3(max.x(), min.y(), max.z()), -dz, dy,
-                               mat)); // right
+                               mat); // right
   sides[2] = new quad(point3(max.x(), min.y(), min.z()), -dx, dy,
-                               mat)); // back
+                               mat); // back
   sides[3] = new quad(point3(min.x(), min.y(), min.z()), dz, dy,
-                               mat)); // left
+                               mat); // left
   sides[4] = new quad(point3(min.x(), max.y(), max.z()), dx, -dz,
-                              mat)); // top
+                              mat); // top
   sides[5] = new quad(point3(min.x(), min.y(), min.z()), dx, dz,
-                               mat)); // bottom
+                               mat); // bottom
 
   return new hittable_list(sides, 6);
 }

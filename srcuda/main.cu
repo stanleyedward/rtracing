@@ -1,7 +1,22 @@
-#include "rtw_stub.h"
+#include "common.cuh"
+#include "bvh.cuh"
+
+#include "rtw_stb.h"
+#include "hittable.cuh"
+#include "hittable_list.cuh"
+#include "material.cuh"
+#include "perlin.cuh"
+#include "sphere.cuh"
+#include "quad.cuh"
+
+#include "camera.cuh"
+#include "constant_medium.cuh"
+#include <chrono>
+#include "texture.cuh"
 #include <iostream>
-#include "vec3.cuh"
-#include "ray.cuh"
+
+#define SCENE_NUMBER 1
+#define SEED 2004
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define CHECK_CUDA(val) check_cuda((val), #val, __FILE__, __LINE__)
@@ -14,13 +29,6 @@ void check_cuda(cudaError_t result, char const *const func,
     exit(99);
   }
 }
-
-struct GPUImage {
-  unsigned char *data;
-  unsigned int width;
-  unsigned int height;
-  unsigned int channels;
-};
 
 GPUImage load_image_to_gpu(const char *filename) {
   GPUImage img;
@@ -51,17 +59,17 @@ __global__ void create_cornell_box(hittable_list *world, camera *cam,
   auto junior_tex = new image_texture(textures[0]);
 
     objects_list[object_count++] = new quad(point3(555, 0, 0), vec3(0, 555, 0),
-                                vec3(0, 0, 555), green));
+                                vec3(0, 0, 555), green);
     objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555),
-                                red));
+                                red);
     objects_list[object_count++] = new quad(point3(343, 554, 332), vec3(-130, 0, 0),
-                                vec3(0, 0, -105), light));
+                                vec3(0, 0, -105), light);
     objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555),
-                                white));
+                                white);
     objects_list[object_count++] = new quad(point3(555, 555, 555), vec3(-555, 0, 0),
-                                vec3(0, 0, -555), white));
+                                vec3(0, 0, -555), white);
     objects_list[object_count++] = new quad(point3(0, 0, 555), vec3(555, 0, 0),
-                                vec3(0, 555, 0), white));
+                                vec3(0, 555, 0), white);
 
     // boxes
     hittable_list *box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
@@ -104,11 +112,12 @@ void cornell_box(hittable_list *world, camera *cam, curandState *state) {
 
   GPUImage *d_textures;
   cudaMalloc(&d_textures, num_textures * sizeof(GPUImage));
-    cudaMemcpy(d_textures, textures, num_textures*sizeof(GPUImage, cudaMemcpyHostToDevice);
-    cudaMalloc(&world, sizeof(hittable_list));
-    cudaMalloc(&cam, sizeof(camera));
-    create_cornell_box<<<1, 1>>>(d_world, d_camera, d_textures, state);
-    CHECK_CUDA(cudaDeviceSynchronize());
+  cudaMemcpy(d_textures, textures,
+             num_textures * sizeof(GPUImage), cudaMemcpyHostToDevice);
+  cudaMalloc(&world, sizeof(hittable_list));
+  cudaMalloc(&cam, sizeof(camera));
+  create_cornell_box<<<1, 1>>>(world, cam, d_textures, state);
+  CHECK_CUDA(cudaDeviceSynchronize());
 }
 
 __global__ void render(float *output_image, hittable_list *world, camera *cam,
@@ -118,8 +127,8 @@ __global__ void render(float *output_image, hittable_list *world, camera *cam,
   if (row >= cam->image_height || col >= cam->image_width)
     return;
   vec3 pixel_color;
-  unsigned int pixel_idx = row * image_width + col;
-  curandState local_rand_state = render_states[row * image_width + col];
+  unsigned int pixel_idx = row * cam->image_width + col;
+  curandState local_rand_state = render_states[row * cam->image_width + col];
   pixel_color = cam->render(row, col, world, &local_rand_state);
   unsigned int output_idx = pixel_idx * 3;
 #pragma unroll 3
@@ -136,14 +145,14 @@ int main() {
   // get random states
   curandState *d_init_rand_state;
   cudaMalloc((void **)&d_init_rand_state, 1 * sizeof(curandState));
-  rand_init_states<<<1, 1>>>(d_init_rand_state, seed);
-  CHECK_CUDA(cudaGetlastError());
+  rand_init_states<<<1, 1>>>(d_init_rand_state, SEED);
+  CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
   hittable_list *d_world;
   camera *d_cam;
   // create the scene use the init state rand
-  switch (scene_number) {
+  switch (SCENE_NUMBER) {
   case 1: // cornell box
     image_width = 600;
     aspect_ratio = 1.0f;
@@ -160,34 +169,33 @@ int main() {
     break;
   }
 
-  // after creating scene get the camer details and alloc space for the output
-  // image using image_height and image_width
   unsigned int output_image_size = image_width * image_height;
   curandState *d_render_states;
+
   cudaMalloc((void **)&d_render_states,
              output_image_size * sizeof(curandState));
+  dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
+  dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE),
+                        CEIL_DIV(image_height, TILE_SIZE), 1);
   rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(
-      image_width, image_height, d_render_states, seed);
-  CHECK_CUDA(cudaGetlastError());
+      image_width, image_height, d_render_states, SEED);
+  CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
   float *d_output_image;
   float *h_output_image;
-  h_output_image = (float*)malloc(output_image_size * CH * sizeof(float));
-//   checkCudaErrors(cudaMallocManaged((void **)&d_output_image,
-//                                     output_image_size * CH * sizeof(float)));
+  h_output_image = (float *)malloc(output_image_size * CH * sizeof(float));
+
   cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
-  dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
-  dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE),
-                        CEIL_DIV(image_height, TILE_SIZE), 1);
-  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(output_image, d_world, d_cam,
+
+  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(d_output_image, d_world, d_cam,
                                                    d_render_states);
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+  CHECK_CUDA(cudaGetLastError());
+  CHECK_CUDA(cudaDeviceSynchronize());
 
   cudaMemcpy(h_output_image, d_output_image,
              output_image_size * CH * sizeof(float), cudaMemcpyDeviceToHost);
-  checkCudaErrors(cudaDeviceSynchronize());
+  CHECK_CUDA(cudaDeviceSynchronize());
 
   // write to .ppm
   std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
@@ -197,12 +205,12 @@ int main() {
       float r = h_output_image[pixel_index + 0];
       float g = h_output_image[pixel_index + 1];
       float b = h_output_image[pixel_index + 2];
-      
+
       write_color(std::cout, r, g, b);
     }
   }
 
   // free
-  checkCudaErrors(cudaFree(d_output_image));
+  CHECK_CUDA(cudaFree(d_output_image));
   return 0;
 }

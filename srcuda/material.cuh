@@ -1,8 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "vec3.cuh"
-#include "color.cuh"
+#include "common.cuh"
 #include "hittable.cuh"
 #include "texture.cuh"
 

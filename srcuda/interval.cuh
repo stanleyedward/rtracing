@@ -1,8 +1,10 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
-inline constexpr float infinity = FLT_MAX;
+#include "vec3.cuh"
+#include <cfloat>
 
+inline constexpr float infinity = FLT_MAX;
 class interval {
 public:
   float min, max;
@@ -34,7 +36,7 @@ public:
     return x;
   }
 
-  __host__ __device__ vec3 clamp(vec3 v) const{
+  __host__ __device__ vec3 clamp(vec3 v) const {
     return vec3(clamp(v.x()), clamp(v.y()), clamp(v.z()));
   }
 

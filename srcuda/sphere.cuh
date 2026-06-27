@@ -3,7 +3,6 @@
 
 #include "common.cuh"
 #include "hittable.cuh"
-#include "interval.cuh"
 
 class sphere : public hittable {
 private:

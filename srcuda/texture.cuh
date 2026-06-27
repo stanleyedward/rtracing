@@ -1,10 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "interval.cuh"
-#include "rtw_stb.h"
-#include "vec3.cuh"
-#include "color.cuh"
+// #include "common.cuh"
 #include "perlin.cuh"
 
 class texture {
@@ -53,8 +50,8 @@ public:
 class image_texture : public texture {
 private:
   unsigned char *data;
-  unsigned int width;
-  unsigned int height;
+  int width;
+  int height;
   color debug_color = color(0.f, 0.1f, 0.1f);
 
 public:
@@ -68,11 +65,12 @@ public:
                          const point3 &position) const override {
     if (height <= 0 || width <= 0)
       return debug_color;
-    int i = min(u * width, width - 1);
-    int j = min(v * height, height - 1);
+    int i = min(int(u * width), int(width - 1));
+    int j = min(int(v * height), int(height - 1));
     int idx = (j * width + i) * CH;
     float s = 1.f / 255.f;
-    color pixel_color = color(s * data[idx], s * data[idx + 1], s * data[idx + 2]);
+    color pixel_color =
+        color(s * data[idx], s * data[idx + 1], s * data[idx + 2]);
     return pixel_color;
   }
 };
@@ -83,8 +81,8 @@ private:
   float scale;
 
 public:
-  noise_texture(float scale) : scale(scale) {}
-  color value(float u, float v, const point3 &position) const override {
+  __device__ noise_texture(curandState* state, float scale) : noise(state), scale(scale) {}
+  __device__ color value(float u, float v, const point3 &position) const override {
     return color(.5, .5, .5) *
            (1 + sinf(scale * position.z() + 10 * noise.turb(position, 7)));
   }

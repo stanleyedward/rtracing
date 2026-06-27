@@ -6,6 +6,19 @@
 #include <iostream>
 #include <curand_kernel.h>
 
+__device__ inline float random_float(curandState *state) {
+  // curand gives (0, 1] doing 1- to mkae it [0, 1)
+  return 1.0f - curand_uniform(state);
+}
+
+__device__ inline float random_float(float min, float max, curandState *state) {
+  return min + (max - min) * random_float(state);
+}
+
+__device__ inline int random_int(int min, int max, curandState *state) {
+  return int(random_float(min, max + 1, state));
+}
+
 class vec3 {
 public:
   float e[3];
@@ -35,6 +48,13 @@ public:
     e[0] += v.e[0];
     e[1] += v.e[1];
     e[2] += v.e[2];
+    return *this;
+  }
+
+  __device__ vec3 &operator*=(const vec3 &v) {
+    e[0] *= v.e[0];
+    e[1] *= v.e[1];
+    e[2] *= v.e[2];
     return *this;
   }
 
