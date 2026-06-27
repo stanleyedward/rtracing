@@ -2,7 +2,7 @@
 set -e
 
 # format only your own CUDA sources (skip the vendored stb headers in external/)
-clang-format -i srcuda/*.cu srcuda/*.cuh
+clang-format -i src/*.cu src/*.cuh
 
 rm -rf build
 
