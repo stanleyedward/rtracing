@@ -1,9 +1,20 @@
-##format
+#!/usr/bin/env bash
+set -e
 
-clang-format -i src/*
+# format only your own CUDA sources (skip the vendored stb headers in external/)
+clang-format -i srcuda/*.cu srcuda/*.cuh
+
 rm -rf build
-#configure
-# cmake -B build/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-march=native -flto -ffast-math"
-cmake -B build/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS="-march=native -flto -ffast-math"
+
+# configure (gcc as the nvcc host compiler — safe choice for CUDA 13.3)
+cmake -B build/Release \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_C_COMPILER=gcc \
+  -DCMAKE_CXX_COMPILER=g++
+
+# keep the symlink pointing at THIS build dir so clangd reads the right database
+ln -sf build/Release/compile_commands.json compile_commands.json
+
 # build
-cmake --build build/Release -- VERBOSE=1
+# cmake --build build/Release -- VERBOSE=1

@@ -2,3 +2,4 @@
 - [x] fix image texture fn
 - [ ] BVH traversal: https://developer.nvidia.com/blog/thinking-parallel-part-ii-tree-traversal-gpu/
 - [ ] BVH constructor https://developer.nvidia.com/blog/thinking-parallel-part-iii-tree-construction-gpu/
+- [ ] free heap mem

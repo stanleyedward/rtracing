@@ -1,0 +1,25 @@
+CompileFlags:
+  Compiler: clang++
+  Add:
+    - -xcuda
+    - --cuda-path=/home/stanley/micromamba/envs/rt
+    - --cuda-gpu-arch=sm_89
+    - --no-cuda-version-check
+    - -std=c++20
+    - -I/home/stanley/micromamba/envs/rt/targets/x86_64-linux/include
+  Remove:
+    - -forward-unknown-to-host-compiler
+    - -gencode*
+    - --generate-code*
+    - -arch=*
+    - --expt-*
+    - -Xcompiler*
+    - --options-file
+    - --compiler-options*
+
+---
+If:
+  PathMatch: .*\.cuh
+CompileFlags:
+  Add:
+    - -xcuda
