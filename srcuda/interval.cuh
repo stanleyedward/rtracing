@@ -28,7 +28,7 @@ public:
     return interval(min - padding, max + padding);
   }
 
-  __host__ __device__ float clamp(float x) const {
+  __device__ float clamp(float x) const {
     if (x < min)
       return min;
     if (x > max)
@@ -36,7 +36,7 @@ public:
     return x;
   }
 
-  __host__ __device__ vec3 clamp(vec3 v) const {
+  __device__ vec3 clamp(vec3 v) const {
     return vec3(clamp(v.x()), clamp(v.y()), clamp(v.z()));
   }
 

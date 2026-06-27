@@ -5,8 +5,8 @@
 
 class perlin {
 private:
-  __device__ static const int point_count = 256;
-  // float randfloat[point_count];
+  static const int point_count = 256;
+
   vec3 randvec[point_count];
   int perm_x[point_count];
   int perm_y[point_count];

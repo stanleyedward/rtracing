@@ -48,7 +48,7 @@ __global__ void create_cornell_box(hittable_list *world, camera *cam,
   if (!(threadIdx.x == 0 && blockIdx.x == 0))
     return;
   // init_world
-  hittable **objects_list;
+  hittable **objects_list = new hittable *[8];
   unsigned int object_count = 0;
 
   // walls
@@ -114,8 +114,7 @@ void cornell_box(hittable_list *world, camera *cam, curandState *state) {
   cudaMalloc(&d_textures, num_textures * sizeof(GPUImage));
   cudaMemcpy(d_textures, textures, num_textures * sizeof(GPUImage),
              cudaMemcpyHostToDevice);
-  cudaMalloc(&world, sizeof(hittable_list));
-  cudaMalloc(&cam, sizeof(camera));
+
   create_cornell_box<<<1, 1>>>(world, cam, d_textures, state);
   CHECK_CUDA(cudaDeviceSynchronize());
 }
@@ -151,6 +150,8 @@ int main() {
 
   hittable_list *d_world;
   camera *d_cam;
+  cudaMalloc(&d_world, sizeof(hittable_list));
+  cudaMalloc(&d_cam, sizeof(camera));
   // create the scene use the init state rand
   switch (SCENE_NUMBER) {
   case 1: // cornell box

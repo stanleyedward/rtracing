@@ -1,9 +1,6 @@
 #ifndef AABB_H
 #define AABB_H
 
-// #include "interval.cuh"
-// #include "vec3.cuh"
-// #include "ray.cuh"
 #include "common.cuh"
 
 class aabb {

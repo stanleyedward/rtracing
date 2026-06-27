@@ -17,4 +17,4 @@ cmake -B build/Release \
 ln -sf build/Release/compile_commands.json compile_commands.json
 
 # build
-# cmake --build build/Release -- VERBOSE=1
+cmake --build build/Release -- VERBOSE=1
