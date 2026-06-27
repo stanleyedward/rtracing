@@ -82,10 +82,11 @@ __global__ void create_cornell_box(hittable_list *world, camera *cam,
   box2 = new translate(box2, vec3(130, 0, 65));
   objects_list[object_count++] = box2;
 
-  world->objects = objects_list;
-  world->list_size = object_count;
-  world->set_bbox();
-
+  // world->objects = objects_list;
+  // world->list_size = object_count;
+  // world->set_bbox();
+  new (world) hittable_list(objects_list, object_count);
+  new (cam) camera();
   // init_camera
   cam->aspect_ratio = 1.0;
   cam->image_width = 600;
@@ -143,15 +144,15 @@ int main() {
 
   // get random states
   curandState *d_init_rand_state;
-  cudaMalloc((void **)&d_init_rand_state, 1 * sizeof(curandState));
+  CHECK_CUDA(cudaMalloc((void **)&d_init_rand_state, 1 * sizeof(curandState)));
   rand_init_states<<<1, 1>>>(d_init_rand_state, SEED);
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
   hittable_list *d_world;
   camera *d_cam;
-  cudaMalloc(&d_world, sizeof(hittable_list));
-  cudaMalloc(&d_cam, sizeof(camera));
+  CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable_list)));
+  CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
   // create the scene use the init state rand
   switch (SCENE_NUMBER) {
   case 1: // cornell box
@@ -173,8 +174,8 @@ int main() {
   unsigned int output_image_size = image_width * image_height;
   curandState *d_render_states;
 
-  cudaMalloc((void **)&d_render_states,
-             output_image_size * sizeof(curandState));
+  CHECK_CUDA(cudaMalloc((void **)&d_render_states,
+                        output_image_size * sizeof(curandState)));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
   dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE),
                         CEIL_DIV(image_height, TILE_SIZE), 1);
@@ -188,7 +189,6 @@ int main() {
   h_output_image = (float *)malloc(output_image_size * CH * sizeof(float));
 
   cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
-
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(d_output_image, d_world,
                                                    d_cam, d_render_states);
   CHECK_CUDA(cudaGetLastError());
@@ -196,11 +196,10 @@ int main() {
 
   cudaMemcpy(h_output_image, d_output_image,
              output_image_size * CH * sizeof(float), cudaMemcpyDeviceToHost);
-  CHECK_CUDA(cudaDeviceSynchronize());
 
   // write to .ppm
   std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
-  for (int i = image_height - 1; i >= 0; i--) {
+  for (int i = 0; i < image_height; i++) {
     for (int j = 0; j < image_width; j++) {
       size_t pixel_index = (i * image_width + j) * 3;
       float r = h_output_image[pixel_index + 0];

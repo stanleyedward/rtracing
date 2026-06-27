@@ -13,8 +13,12 @@ cmake -B build/Release \
   -DCMAKE_C_COMPILER=gcc \
   -DCMAKE_CXX_COMPILER=g++
 
+# cmake -B build/Debug -DCMAKE_BUILD_TYPE=Debug \
+#   -DCMAKE_CUDA_FLAGS="-G -g" \
+#   -DCMAKE_CXX_COMPILER=g++
 # keep the symlink pointing at THIS build dir so clangd reads the right database
 ln -sf build/Release/compile_commands.json compile_commands.json
 
 # build
 cmake --build build/Release -- VERBOSE=1
+# cmake --build build/Debug

@@ -1,1 +1,2 @@
-./build/Release/inOneWeekend
+./build/Release/raytracer
+# ./build/Debug/raytracer
