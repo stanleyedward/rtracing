@@ -41,8 +41,8 @@ public:
     return true;
   }
 
-  __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record, curandState* state) const override {
+  __device__ bool hit(const ray &r, interval ray_t, hit_record &record,
+                      curandState *state) const override {
     float denom = dot(normal, r.direction());
     if (fabsf(denom) < 1e-8) {
       return false;
@@ -109,28 +109,28 @@ public:
 };
 
 class annulus : public quad {
-  public:
-    __device__ annulus(const point3 &center, const vec3 &side_A,
-                      const vec3 &side_B, float _inner, material *m)
-        : quad(center, side_A, side_B, m), inner(_inner) {}
+public:
+  __device__ annulus(const point3 &center, const vec3 &side_A,
+                     const vec3 &side_B, float _inner, material *m)
+      : quad(center, side_A, side_B, m), inner(_inner) {}
 
-    __device__ virtual void set_bounding_box() override {
-      bbox = aabb(Q - u - v, Q + u + v);
-    }
+  __device__ virtual void set_bounding_box() override {
+    bbox = aabb(Q - u - v, Q + u + v);
+  }
 
-    __device__ virtual bool is_interior(float a, float b,
-                                        hit_record &rec) const override {
-      auto center_dist = sqrt(a * a + b * b);
-      if ((center_dist < inner) || (center_dist > 1))
-        return false;
+  __device__ virtual bool is_interior(float a, float b,
+                                      hit_record &rec) const override {
+    auto center_dist = sqrt(a * a + b * b);
+    if ((center_dist < inner) || (center_dist > 1))
+      return false;
 
-      rec.u = a / 2 + 0.5f;
-      rec.v = b / 2 + 0.5f;
-      return true;
-    }
+    rec.u = a / 2 + 0.5f;
+    rec.v = b / 2 + 0.5f;
+    return true;
+  }
 
-  private:
-    float inner;
+private:
+  float inner;
 };
 
 __device__ inline hittable_list *box(const point3 &a, const point3 &b,
@@ -148,17 +148,17 @@ __device__ inline hittable_list *box(const point3 &a, const point3 &b,
   hittable **sides = new hittable *[6];
 
   sides[0] = new quad(point3(min.x(), min.y(), max.z()), dx, dy,
-                               mat); // front
+                      mat); // front
   sides[1] = new quad(point3(max.x(), min.y(), max.z()), -dz, dy,
-                               mat); // right
+                      mat); // right
   sides[2] = new quad(point3(max.x(), min.y(), min.z()), -dx, dy,
-                               mat); // back
+                      mat); // back
   sides[3] = new quad(point3(min.x(), min.y(), min.z()), dz, dy,
-                               mat); // left
+                      mat); // left
   sides[4] = new quad(point3(min.x(), max.y(), max.z()), dx, -dz,
-                              mat); // top
+                      mat); // top
   sides[5] = new quad(point3(min.x(), min.y(), min.z()), dx, dz,
-                               mat); // bottom
+                      mat); // bottom
 
   return new hittable_list(sides, 6);
 }

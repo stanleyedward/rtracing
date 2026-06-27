@@ -18,8 +18,8 @@ public:
 
   __device__ bool is_bvh() const override { return true; }
 
-  __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &rec, curandState* state) const override {
+  __device__ bool hit(const ray &r, interval ray_t, hit_record &rec,
+                      curandState *state) const override {
     hittable *stack[64];
     int ptr = 0;
     hittable *node = (hittable *)this;
@@ -79,7 +79,7 @@ public:
       float key_val = key->bounding_box().axis_interval(axis).min;
       int j = i - 1;
       while (j >= (int)start &&
-            objects[j]->bounding_box().axis_interval(axis).min > key_val) {
+             objects[j]->bounding_box().axis_interval(axis).min > key_val) {
         objects[j + 1] = objects[j];
         j--;
       }
@@ -88,7 +88,7 @@ public:
   }
 
   __device__ static hittable *create_bvh_tree(hittable **objects, size_t start,
-                                      size_t end) {
+                                              size_t end) {
     struct BVHWork {
       bvh_node *node;
       size_t start;
@@ -136,7 +136,5 @@ public:
     return root;
   }
 };
-
-
 
 #endif

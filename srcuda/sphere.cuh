@@ -12,7 +12,6 @@ private:
   aabb bbox;
 
 public:
-  // sphere constructor
   __device__ sphere(const point3 &static_center, float r, material *mat)
       : center(static_center, vec3(0, 0, 0)), radius(fmaxf(0.0, r)), mat(mat) {
     vec3 rvec = vec3(radius, radius, radius);
@@ -39,8 +38,8 @@ public:
     v = theta / pi;
   }
 
-  __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record, curandState* state) const override {
+  __device__ bool hit(const ray &r, interval ray_t, hit_record &record,
+                      curandState *state) const override {
     point3 current_center = center.at(r.time());
     vec3 center_minus_point = current_center - r.origin();
     float a = dot(r.direction(), r.direction());

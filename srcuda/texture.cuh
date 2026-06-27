@@ -1,7 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-// #include "common.cuh"
 #include "perlin.cuh"
 
 class texture {
@@ -81,8 +80,10 @@ private:
   float scale;
 
 public:
-  __device__ noise_texture(curandState* state, float scale) : noise(state), scale(scale) {}
-  __device__ color value(float u, float v, const point3 &position) const override {
+  __device__ noise_texture(curandState *state, float scale)
+      : noise(state), scale(scale) {}
+  __device__ color value(float u, float v,
+                         const point3 &position) const override {
     return color(.5, .5, .5) *
            (1 + sinf(scale * position.z() + 10 * noise.turb(position, 7)));
   }

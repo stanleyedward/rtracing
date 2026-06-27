@@ -21,7 +21,6 @@ struct GPUImage {
   int channels;
 };
 
-
 inline constexpr float pi =
     3.1415926535897932385f; // prob truncated to 7 digits coz float
 

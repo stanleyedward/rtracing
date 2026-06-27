@@ -25,8 +25,8 @@ public:
     return boundary->bounding_box();
   }
 
-  __device__ bool hit(const ray &r, interval ray_t,
-                      hit_record &record, curandState* state) const override {
+  __device__ bool hit(const ray &r, interval ray_t, hit_record &record,
+                      curandState *state) const override {
     hit_record rec1, rec2;
     if (!boundary->hit(r, interval::universe(), rec1, state))
       return false;

@@ -25,7 +25,8 @@ private:
 
     for (int i = 0; i < depth; i++) {
       hit_record record;
-      if (!world->hit(current_ray, interval(0.0001f, infinity), record, state)) {
+      if (!world->hit(current_ray, interval(0.0001f, infinity), record,
+                      state)) {
         if (use_sky_gradient) {
           vec3 unit_vector_r = unit_vector(current_ray.direction());
           // go from [-1, 1] to [0, 1]
@@ -118,7 +119,7 @@ public:
         linear_to_gamma(pixel_color * pixel_sample_scale);
     return color_intensity.clamp(gamma_corrected_color);
   }
-  
+
   __device__ void initialize() {
     image_height = int(image_width / aspect_ratio);
     image_height = image_height < 1 ? 1 : image_height;

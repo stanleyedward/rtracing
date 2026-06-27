@@ -58,48 +58,48 @@ __global__ void create_cornell_box(hittable_list *world, camera *cam,
   auto light = new diffuse_light(color(15, 15, 15));
   auto junior_tex = new image_texture(textures[0]);
 
-    objects_list[object_count++] = new quad(point3(555, 0, 0), vec3(0, 555, 0),
-                                vec3(0, 0, 555), green);
-    objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555),
-                                red);
-    objects_list[object_count++] = new quad(point3(343, 554, 332), vec3(-130, 0, 0),
-                                vec3(0, 0, -105), light);
-    objects_list[object_count++] = new quad(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555),
-                                white);
-    objects_list[object_count++] = new quad(point3(555, 555, 555), vec3(-555, 0, 0),
-                                vec3(0, 0, -555), white);
-    objects_list[object_count++] = new quad(point3(0, 0, 555), vec3(555, 0, 0),
-                                vec3(0, 555, 0), white);
+  objects_list[object_count++] =
+      new quad(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green);
+  objects_list[object_count++] =
+      new quad(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red);
+  objects_list[object_count++] = new quad(
+      point3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), light);
+  objects_list[object_count++] =
+      new quad(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555), white);
+  objects_list[object_count++] = new quad(
+      point3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), white);
+  objects_list[object_count++] =
+      new quad(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white);
 
-    // boxes
-    hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
-    box1 = new rotate_y(box1, 15);
-    box1 = new translate(box1, vec3(265, 0, 295));
-    objects_list[object_count++] = box1;
+  // boxes
+  hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = new rotate_y(box1, 15);
+  box1 = new translate(box1, vec3(265, 0, 295));
+  objects_list[object_count++] = box1;
 
-    hittable *box2 = box(point3(0, 0, 0), point3(165, 165, 165), white);
-    box2 = new rotate_y(box2, -18);
-    box2 = new translate(box2, vec3(130, 0, 65));
-    objects_list[object_count++] = box2;
+  hittable *box2 = box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = new rotate_y(box2, -18);
+  box2 = new translate(box2, vec3(130, 0, 65));
+  objects_list[object_count++] = box2;
 
-    world->objects = objects_list;
-    world->list_size = object_count;
-    world->set_bbox();
+  world->objects = objects_list;
+  world->list_size = object_count;
+  world->set_bbox();
 
-    // init_camera
-    cam->aspect_ratio = 1.0;
-    cam->image_width = 600;
-    cam->samples_per_pixel = 200;
-    cam->max_depth = 50;
-    cam->background = color(0, 0, 0);
-    cam->use_sky_gradient = false;
+  // init_camera
+  cam->aspect_ratio = 1.0;
+  cam->image_width = 600;
+  cam->samples_per_pixel = 200;
+  cam->max_depth = 50;
+  cam->background = color(0, 0, 0);
+  cam->use_sky_gradient = false;
 
-    cam->vFov = 40;
-    cam->lookfrom = point3(278, 278, -800);
-    cam->lookat = point3(278, 278, 0);
-    cam->vUp = vec3(0, 1, 0);
-    cam->defocus_angle = 0;
-    cam->initialize();
+  cam->vFov = 40;
+  cam->lookfrom = point3(278, 278, -800);
+  cam->lookat = point3(278, 278, 0);
+  cam->vUp = vec3(0, 1, 0);
+  cam->defocus_angle = 0;
+  cam->initialize();
 }
 
 void cornell_box(hittable_list *world, camera *cam, curandState *state) {
@@ -112,8 +112,8 @@ void cornell_box(hittable_list *world, camera *cam, curandState *state) {
 
   GPUImage *d_textures;
   cudaMalloc(&d_textures, num_textures * sizeof(GPUImage));
-  cudaMemcpy(d_textures, textures,
-             num_textures * sizeof(GPUImage), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_textures, textures, num_textures * sizeof(GPUImage),
+             cudaMemcpyHostToDevice);
   cudaMalloc(&world, sizeof(hittable_list));
   cudaMalloc(&cam, sizeof(camera));
   create_cornell_box<<<1, 1>>>(world, cam, d_textures, state);
@@ -188,8 +188,8 @@ int main() {
 
   cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
 
-  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(d_output_image, d_world, d_cam,
-                                                   d_render_states);
+  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(d_output_image, d_world,
+                                                   d_cam, d_render_states);
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
