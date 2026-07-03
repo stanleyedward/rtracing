@@ -3,7 +3,6 @@
 
 #include "aabb.cuh"
 #include "hittable.cuh"
-#include "hittable_list.cuh"
 
 class bvh_node : public hittable {
 private:

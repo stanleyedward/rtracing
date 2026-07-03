@@ -43,7 +43,7 @@ GPUImage load_image_to_gpu(const char *filename) {
   return img;
 }
 
-__global__ void create_cornell_box(hittable_list *world, camera *cam,
+__global__ void create_cornell_box(hittable **world, camera *cam,
                                    GPUImage *textures, curandState *state) {
   if (!(threadIdx.x == 0 && blockIdx.x == 0))
     return;
@@ -82,10 +82,13 @@ __global__ void create_cornell_box(hittable_list *world, camera *cam,
   box2 = new translate(box2, vec3(130, 0, 65));
   objects_list[object_count++] = box2;
 
-  // world->objects = objects_list;
-  // world->list_size = object_count;
-  // world->set_bbox();
-  new (world) hittable_list(objects_list, object_count);
+  bool use_bvh = true;
+
+  if (use_bvh) {
+    *world = bvh_node::create_bvh_tree(objects_list, 0, object_count);
+  } else
+    *world = new hittable_list(objects_list, object_count);
+
   new (cam) camera();
   // init_camera
   cam->aspect_ratio = 1.0;
@@ -103,7 +106,7 @@ __global__ void create_cornell_box(hittable_list *world, camera *cam,
   cam->initialize();
 }
 
-void cornell_box(hittable_list *world, camera *cam, curandState *state) {
+void cornell_box(hittable **world, camera *cam, curandState *state) {
 
   GPUImage textures[2];
   int num_textures = 0;
@@ -120,7 +123,7 @@ void cornell_box(hittable_list *world, camera *cam, curandState *state) {
   CHECK_CUDA(cudaDeviceSynchronize());
 }
 
-__global__ void render(float *output_image, hittable_list *world, camera *cam,
+__global__ void render(float *output_image, hittable **world, camera *cam,
                        curandState *render_states) {
   unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
   unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -129,7 +132,7 @@ __global__ void render(float *output_image, hittable_list *world, camera *cam,
   vec3 pixel_color;
   unsigned int pixel_idx = row * cam->image_width + col;
   curandState local_rand_state = render_states[row * cam->image_width + col];
-  pixel_color = cam->render(row, col, world, &local_rand_state);
+  pixel_color = cam->render(row, col, *world, &local_rand_state);
   unsigned int output_idx = pixel_idx * 3;
 #pragma unroll 3
   for (int i = 0; i < 3; i++)
@@ -138,6 +141,8 @@ __global__ void render(float *output_image, hittable_list *world, camera *cam,
 }
 
 int main() {
+  cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024); // 128mb
+  cudaDeviceSetLimit(cudaLimitStackSize, 8192); //8kb
   int image_width;
   int image_height;
   float aspect_ratio;
@@ -149,9 +154,9 @@ int main() {
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
-  hittable_list *d_world;
+  hittable **d_world;
   camera *d_cam;
-  CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable_list)));
+  CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable *)));
   CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
   // create the scene use the init state rand
   switch (SCENE_NUMBER) {
