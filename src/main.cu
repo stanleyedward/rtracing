@@ -47,27 +47,26 @@ int main() {
   // CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
   // create the scene use the init state rand
 
-  // switch (SCENE_NUMBER) {
-  // case 1:
-  //   Scene scene = Scene::cornell_box(d_init_rand_state);
-  //   break;
-  // default:
-  //   // Scene scene = Scene::cornell_box_2(d_init_rand_state);
-  //   break;
-  // }
+  std::unique_ptr<Scene> scene;
+  switch (SCENE_NUMBER) {
+  case 1:
+    scene = Scene::cornell_box(d_init_rand_state);
+    break;
+  default:
+    scene = Scene::cornell_box(d_init_rand_state);
+    break;
+  }
 
-  Scene scene = Scene::cornell_box(d_init_rand_state);
-
-  unsigned int output_image_size = scene.image_width * scene.image_height;
+  unsigned int output_image_size = scene->image_width * scene->image_height;
   curandState *d_render_states;
 
   CHECK_CUDA(cudaMalloc((void **)&d_render_states,
                         output_image_size * sizeof(curandState)));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
-  dim3 numBlocksPerGrid(CEIL_DIV(scene.image_width, TILE_SIZE),
-                        CEIL_DIV(scene.image_height, TILE_SIZE), 1);
+  dim3 numBlocksPerGrid(CEIL_DIV(scene->image_width, TILE_SIZE),
+                        CEIL_DIV(scene->image_height, TILE_SIZE), 1);
   rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(
-      scene.image_width, scene.image_height, d_render_states, SEED);
+      scene->image_width, scene->image_height, d_render_states, SEED);
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
@@ -78,7 +77,7 @@ int main() {
   cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
   timer.begin();
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(
-      d_output_image, scene.d_world, scene.d_cam, d_render_states);
+      d_output_image, scene->d_world, scene->d_cam, d_render_states);
   float time = timer.end();
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
@@ -90,10 +89,10 @@ int main() {
 
   // write to .ppm
   std::cout << "P3\n"
-            << scene.image_width << " " << scene.image_height << "\n255\n";
-  for (int i = 0; i < scene.image_height; i++) {
-    for (int j = 0; j < scene.image_width; j++) {
-      size_t pixel_index = (i * scene.image_width + j) * 3;
+            << scene->image_width << " " << scene->image_height << "\n255\n";
+  for (int i = 0; i < scene->image_height; i++) {
+    for (int j = 0; j < scene->image_width; j++) {
+      size_t pixel_index = (i * scene->image_width + j) * 3;
       float r = h_output_image[pixel_index + 0];
       float g = h_output_image[pixel_index + 1];
       float b = h_output_image[pixel_index + 2];

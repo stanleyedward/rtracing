@@ -17,6 +17,7 @@
 #include "camera.cuh"
 #include "constant_medium.cuh"
 #include "texture.cuh"
+#include <algorithm>
 
 __global__ void create_cornell_box_kernel(hittable **world, camera *cam,
                                           GPUImage *textures,
@@ -109,21 +110,21 @@ public:
       cudaFree(d_textures);
   }
 
-  static Scene cornell_box(curandState *init_state) {
-    Scene scene;
-    scene.image_width = 600;
-    scene.image_height = 600;
+  static std::unique_ptr<Scene> cornell_box(curandState *init_state) {
+    auto scene = std::make_unique<Scene>();
+    scene->image_width = 600;
+    scene->image_height = 600;
 
     GPUImage textures[2];
-    textures[scene.num_textures++] = load_image_to_gpu("textures/junior.png");
-    textures[scene.num_textures++] = load_image_to_gpu("textures/earthmap.jpg");
+    textures[scene->num_textures++] = load_image_to_gpu("textures/junior.png");
+    textures[scene->num_textures++] = load_image_to_gpu("textures/earthmap.jpg");
     CHECK_CUDA(
-        cudaMalloc(&scene.d_textures, scene.num_textures * sizeof(GPUImage)));
-    CHECK_CUDA(cudaMemcpy(scene.d_textures, textures,
-                          scene.num_textures * sizeof(GPUImage),
+        cudaMalloc(&scene->d_textures, scene->num_textures * sizeof(GPUImage)));
+    CHECK_CUDA(cudaMemcpy(scene->d_textures, textures,
+                          scene->num_textures * sizeof(GPUImage),
                           cudaMemcpyHostToDevice));
-    create_cornell_box_kernel<<<1, 1>>>(scene.d_world, scene.d_cam,
-                                        scene.d_textures, init_state);
+    create_cornell_box_kernel<<<1, 1>>>(scene->d_world, scene->d_cam,
+                                        scene->d_textures, init_state);
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());
     return scene;
