@@ -2,6 +2,7 @@
 #define TEXTURE_H
 
 #include "perlin.cuh"
+#include "utils.cuh"
 
 class texture {
 public:
