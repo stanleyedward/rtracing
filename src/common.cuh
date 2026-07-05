@@ -14,13 +14,6 @@
 #define TILE_SIZE 16
 #define CEIL_DIV(N, M) ((N + M - 1) / M)
 
-struct GPUImage {
-  unsigned char *data;
-  int width;
-  int height;
-  int channels;
-};
-
 inline constexpr float pi =
     3.1415926535897932385f; // prob truncated to 7 digits coz float
 

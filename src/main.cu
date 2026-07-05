@@ -1,6 +1,9 @@
+#include "utils.cuh"
 #include "common.cuh"
 #include "bvh.cuh"
 
+#include "cuda_runtime.h"
+#include "cuda_runtime_api.h"
 #include "rtw_stb.h"
 #include "hittable.cuh"
 #include "hittable_list.cuh"
@@ -143,6 +146,8 @@ __global__ void render(float *output_image, hittable **world, camera *cam,
 int main() {
   // cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024); // 128mb
   // cudaDeviceSetLimit(cudaLimitStackSize, 8192); //8kb
+  GPUTimer timer;
+
   int image_width;
   int image_height;
   float aspect_ratio;
@@ -184,8 +189,11 @@ int main() {
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
   dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE),
                         CEIL_DIV(image_height, TILE_SIZE), 1);
+  timer.begin();
   rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(
       image_width, image_height, d_render_states, SEED);
+  float time = timer.end();
+
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
@@ -202,6 +210,8 @@ int main() {
   cudaMemcpy(h_output_image, d_output_image,
              output_image_size * CH * sizeof(float), cudaMemcpyDeviceToHost);
 
+  std::clog << "time to render: " << time << " ms\n";
+
   // write to .ppm
   std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
   for (int i = 0; i < image_height; i++) {
@@ -216,6 +226,8 @@ int main() {
   }
 
   // free
+  // cudaEventDestroy(start);
+  // cudaEventDestroy(stop);
   CHECK_CUDA(cudaFree(d_output_image));
   return 0;
 }
