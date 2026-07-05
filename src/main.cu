@@ -34,10 +34,6 @@ int main() {
   // cudaDeviceSetLimit(cudaLimitStackSize, 8192); //8kb
   GPUTimer timer;
 
-  int image_width;
-  int image_height;
-  float aspect_ratio;
-
   // get random states
   curandState *d_init_rand_state;
   CHECK_CUDA(cudaMalloc((void **)&d_init_rand_state, 1 * sizeof(curandState)));
@@ -45,48 +41,33 @@ int main() {
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
-  hittable **d_world;
-  camera *d_cam;
-  CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable *)));
-  CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
+  // hittable **d_world;
+  // camera *d_cam;
+  // CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable *)));
+  // CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
   // create the scene use the init state rand
-  switch (SCENE_NUMBER) {
-  case 1: // cornell box
-    image_width = 600;
-    aspect_ratio = 1.0f;
-    image_height = int(image_width / aspect_ratio);
-    image_height = image_height < 1 ? 1 : image_height;
-    cornell_box(d_world, d_cam, d_init_rand_state);
-    break;
-  default:
-    image_width = 600;
-    aspect_ratio = 1.0f;
-    image_height = int(image_width / aspect_ratio);
-    image_height = image_height < 1 ? 1 : image_height;
-    cornell_box(d_world, d_cam, d_init_rand_state);
-    break;
-  }
 
-  // 2 ways to do it
-  /*
-  either i have switch statements here in main, or i try to just pass the number
-  then do something, or i could look into using if statments and objcount to get
-  1 freeing method
-  */
+  // switch (SCENE_NUMBER) {
+  // case 1:
+  //   Scene scene = Scene::cornell_box(d_init_rand_state);
+  //   break;
+  // default:
+  //   // Scene scene = Scene::cornell_box_2(d_init_rand_state);
+  //   break;
+  // }
 
-  unsigned int output_image_size = image_width * image_height;
+  Scene scene = Scene::cornell_box(d_init_rand_state);
+
+  unsigned int output_image_size = scene.image_width * scene.image_height;
   curandState *d_render_states;
 
   CHECK_CUDA(cudaMalloc((void **)&d_render_states,
                         output_image_size * sizeof(curandState)));
   dim3 numThreadsPerBlock(TILE_SIZE, TILE_SIZE, 1);
-  dim3 numBlocksPerGrid(CEIL_DIV(image_width, TILE_SIZE),
-                        CEIL_DIV(image_height, TILE_SIZE), 1);
-  timer.begin();
+  dim3 numBlocksPerGrid(CEIL_DIV(scene.image_width, TILE_SIZE),
+                        CEIL_DIV(scene.image_height, TILE_SIZE), 1);
   rand_render_states<<<numBlocksPerGrid, numThreadsPerBlock>>>(
-      image_width, image_height, d_render_states, SEED);
-  float time = timer.end();
-
+      scene.image_width, scene.image_height, d_render_states, SEED);
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
@@ -95,8 +76,10 @@ int main() {
   h_output_image = (float *)malloc(output_image_size * CH * sizeof(float));
 
   cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
-  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(d_output_image, d_world,
-                                                   d_cam, d_render_states);
+  timer.begin();
+  render<<<numBlocksPerGrid, numThreadsPerBlock>>>(
+      d_output_image, scene.d_world, scene.d_cam, d_render_states);
+  float time = timer.end();
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());
 
@@ -106,10 +89,11 @@ int main() {
   std::clog << "time to render: " << time << " ms\n";
 
   // write to .ppm
-  std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
-  for (int i = 0; i < image_height; i++) {
-    for (int j = 0; j < image_width; j++) {
-      size_t pixel_index = (i * image_width + j) * 3;
+  std::cout << "P3\n"
+            << scene.image_width << " " << scene.image_height << "\n255\n";
+  for (int i = 0; i < scene.image_height; i++) {
+    for (int j = 0; j < scene.image_width; j++) {
+      size_t pixel_index = (i * scene.image_width + j) * 3;
       float r = h_output_image[pixel_index + 0];
       float g = h_output_image[pixel_index + 1];
       float b = h_output_image[pixel_index + 2];
@@ -119,6 +103,9 @@ int main() {
   }
 
   // free - figure out how to do this.
-  CHECK_CUDA(cudaFree(d_output_image));
+  free(h_output_image);
+  cudaFree(d_output_image);
+  cudaFree(d_render_states);
+  cudaFree(d_init_rand_state);
   return 0;
 }

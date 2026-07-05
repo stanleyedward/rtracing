@@ -1,6 +1,8 @@
 #ifndef SCENES_CUH
 #define SCENES_CUH
 
+#include "cuda_runtime_api.h"
+#include "driver_types.h"
 #include "utils.cuh"
 #include "common.cuh"
 #include "bvh.cuh"
@@ -16,42 +18,9 @@
 #include "constant_medium.cuh"
 #include "texture.cuh"
 
-// class scene {
-// public:
-//   virtual ~scene() = default;
-//   __device__ virtual void create_scene() const = 0;
-//   __device__ virtual void free_scene() const = 0;
-// };
-
-// class cornell_box : public scene {
-// public:
-//   int image_width = 600;
-//   float aspect_ratio = 1.0f;
-//   int image_height;
-
-//   cornell_box(hittable** world, camera* cam, curandState* state) {
-//     image_height = int(image_width / aspect_ratio);
-//     image_height = image_height < 1 ? 1 : image_height;
-//     GPUImage textures[2];
-//     int num_textures = 0;
-
-//     textures[num_textures++] = load_image_to_gpu("textures/junior.png");
-//     textures[num_textures++] = load_image_to_gpu("textures/earthmap.jpg");
-
-//     GPUImage *d_textures;
-//     cudaMalloc(&d_textures, num_textures * sizeof(GPUImage));
-//     cudaMemcpy(d_textures, textures, num_textures * sizeof(GPUImage),
-//                 cudaMemcpyHostToDevice);
-
-//   }
-
-//   __device__ void create_scene() const override {}
-
-//   __device__ void free_scene() const override { return; }
-// };
-
-__global__ void create_cornell_box(hittable **world, camera *cam,
-                                   GPUImage *textures, curandState *state) {
+__global__ void create_cornell_box_kernel(hittable **world, camera *cam,
+                                          GPUImage *textures,
+                                          curandState *state) {
   if (!(threadIdx.x == 0 && blockIdx.x == 0))
     return;
   // init_world
@@ -113,21 +82,52 @@ __global__ void create_cornell_box(hittable **world, camera *cam,
   cam->initialize();
 }
 
-void cornell_box(hittable **world, camera *cam, curandState *state) {
+class Scene {
+public:
+  int image_width;
+  int image_height;
 
-  GPUImage textures[2];
-  int num_textures = 0;
-
-  textures[num_textures++] = load_image_to_gpu("textures/junior.png");
-  textures[num_textures++] = load_image_to_gpu("textures/earthmap.jpg");
-
+  // gpu res
+  hittable **d_world;
+  camera *d_cam;
   GPUImage *d_textures;
-  cudaMalloc(&d_textures, num_textures * sizeof(GPUImage));
-  cudaMemcpy(d_textures, textures, num_textures * sizeof(GPUImage),
-             cudaMemcpyHostToDevice);
+  int num_textures;
 
-  create_cornell_box<<<1, 1>>>(world, cam, d_textures, state);
-  CHECK_CUDA(cudaDeviceSynchronize());
-}
+  Scene()
+      : d_world(nullptr), d_cam(nullptr), d_textures(nullptr), num_textures(0) {
+    CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable *)));
+    CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
+  }
+
+  ~Scene() {
+    // TODO: free world kernel somehow
+    if (d_world)
+      cudaFree(d_world);
+    if (d_cam)
+      cudaFree(d_cam);
+    if (d_textures)
+      cudaFree(d_textures);
+  }
+
+  static Scene cornell_box(curandState *init_state) {
+    Scene scene;
+    scene.image_width = 600;
+    scene.image_height = 600;
+
+    GPUImage textures[2];
+    textures[scene.num_textures++] = load_image_to_gpu("textures/junior.png");
+    textures[scene.num_textures++] = load_image_to_gpu("textures/earthmap.jpg");
+    CHECK_CUDA(
+        cudaMalloc(&scene.d_textures, scene.num_textures * sizeof(GPUImage)));
+    CHECK_CUDA(cudaMemcpy(scene.d_textures, textures,
+                          scene.num_textures * sizeof(GPUImage),
+                          cudaMemcpyHostToDevice));
+    create_cornell_box_kernel<<<1, 1>>>(scene.d_world, scene.d_cam,
+                                        scene.d_textures, init_state);
+    CHECK_CUDA(cudaGetLastError());
+    CHECK_CUDA(cudaDeviceSynchronize());
+    return scene;
+  }
+};
 
 #endif
