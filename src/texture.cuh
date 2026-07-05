@@ -65,6 +65,8 @@ public:
                          const point3 &position) const override {
     if (height <= 0 || width <= 0)
       return debug_color;
+
+    v = 1.f - v; // stb reads from top to bottom
     int i = min(int(u * width), int(width - 1));
     int j = min(int(v * height), int(height - 1));
     int idx = (j * width + i) * CH;
