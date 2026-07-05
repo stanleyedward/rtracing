@@ -19,7 +19,7 @@ public:
 
   __device__ bool hit(const ray &r, interval ray_t, hit_record &rec,
                       curandState *state) const override {
-    hittable *stack[64];
+    hittable *stack[32];
     int ptr = 0;
     hittable *node = (hittable *)this;
     bool hit_anything = false;
@@ -94,7 +94,8 @@ public:
       size_t end;
     };
 
-    BVHWork work_stack[128];
+    // BVHWork work_stack[128];
+    BVHWork work_stack[32];
     int work_ptr = 0;
 
     bvh_node *root = new bvh_node();

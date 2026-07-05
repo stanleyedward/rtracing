@@ -141,8 +141,8 @@ __global__ void render(float *output_image, hittable **world, camera *cam,
 }
 
 int main() {
-  cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024); // 128mb
-  cudaDeviceSetLimit(cudaLimitStackSize, 8192); //8kb
+  // cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024); // 128mb
+  // cudaDeviceSetLimit(cudaLimitStackSize, 8192); //8kb
   int image_width;
   int image_height;
   float aspect_ratio;
