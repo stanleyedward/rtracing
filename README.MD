@@ -2,7 +2,7 @@
 it may be faster <br>
 note:i have redundant imports because LSP was being annoying (help)
 
-![junior](junior_scene.png)
+![junior](outputs/junior_scene.png)
   
 - https://raytracing.github.io/books/RayTracingInOneWeekend.html
 - https://developer.nvidia.com/blog/thinking-parallel-part-ii-tree-traversal-gpu/

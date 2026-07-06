@@ -85,7 +85,9 @@ __global__ void create_final_scene_kernel(hittable **world, camera *cam,
 
   // texture pshere
   auto emat = new lambertian(new image_texture(textures[0]));
-  objects_list[object_count++] = new sphere(point3(400, 200, 400), 100, emat);
+  auto junior_sphere = new sphere(point3(0, 0, 0), 100, emat);
+  objects_list[object_count++] =
+      new translate(new rotate_y(junior_sphere, 90), vec3(400, 200, 400));
 
   // noise sphere
   auto pertext = new noise_texture(state, 0.2);
@@ -324,8 +326,7 @@ public:
     scene->image_height = image_width;
 
     GPUImage textures[1];
-    textures[scene->num_textures++] =
-        load_image_to_gpu("textures/junior.png");
+    textures[scene->num_textures++] = load_image_to_gpu("textures/junior.png");
 
     CHECK_CUDA(
         cudaMalloc(&scene->d_textures, scene->num_textures * sizeof(GPUImage)));

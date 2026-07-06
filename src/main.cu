@@ -9,7 +9,7 @@
 #include "camera.cuh"
 #include <iostream>
 
-#define SCENE_NUMBER 3
+#define SCENE_NUMBER 4
 #define SEED 2004
 
 __global__ void render(float *output_image, hittable **world, camera *cam,
@@ -47,16 +47,17 @@ int main() {
     scene = Scene::cornell_box(d_init_rand_state);
     break;
   case 2:
-    cudaDeviceSetLimit(cudaLimitStackSize, 8192 / 2); // 8kb
+    cudaDeviceSetLimit(cudaLimitStackSize, 8192 / 2);
     scene = Scene::cornell_smoke(d_init_rand_state);
     break;
   case 3:
-    cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024); // 128mb
-    cudaDeviceSetLimit(cudaLimitStackSize, 8192);                   // 8kb
-    scene = Scene::final_scene(d_init_rand_state, 600, 1000, 25);
+    cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
+    cudaDeviceSetLimit(cudaLimitStackSize, 8192);
+    scene = Scene::final_scene(d_init_rand_state, 400, 450, 20);
     break;
   case 4:
-    cudaDeviceSetLimit(cudaLimitStackSize, 8192); // 8kb
+    cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
+    cudaDeviceSetLimit(cudaLimitStackSize, 8192);
     scene = Scene::final_scene(d_init_rand_state, 800, 10000, 40);
     break;
   default:
@@ -81,7 +82,8 @@ int main() {
   float *h_output_image;
   h_output_image = (float *)malloc(output_image_size * CH * sizeof(float));
 
-  cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float));
+  CHECK_CUDA(
+      cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float)));
   timer.begin();
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(
       d_output_image, scene->d_world, scene->d_cam, d_render_states);
