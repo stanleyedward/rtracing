@@ -6,6 +6,7 @@
 #include "interval.cuh"
 #include "material.cuh"
 #include "vec3.cuh"
+#include <cmath>
 
 class camera {
 private:
@@ -16,6 +17,8 @@ private:
   vec3 v, u, w;
   vec3 defocus_disk_u;
   vec3 defocus_disk_v;
+  int sqrt_spp;
+  float recip_sqrt_spp;
 
   __device__ color ray_color(const ray &r, const hittable *world, int depth,
                              curandState *state) {
@@ -58,10 +61,14 @@ private:
   }
 
   __device__ ray get_ray(const unsigned int i, const unsigned int j,
+                         const unsigned int s_i, const unsigned int s_j,
                          curandState *state) const {
     // gives us a camera ray from defocus disk directed at randomly sampled
-    // point around the viewport pixel location i,j.
-    vec3 offset = sample_square(state);
+    // point around the viewport pixel location i,j. stratifed for sample square
+    // s_i/j.
+
+    // vec3 offset = sample_square(state);
+    vec3 offset = sample_square_stratified(s_i, s_j, state);
     point3 pixel_sample = pixel_00_loc + ((i + offset.x()) * pixel_delta_u) +
                           ((j + offset.y()) * pixel_delta_v);
     // point3 ray_origin = camera_center;
@@ -81,6 +88,16 @@ private:
     // returns a vector to a random point in the [-0.5, -0.5] to [+0.5, +0.5]
     // unit square space.
     return vec3(random_float(state) - 0.5, random_float(state) - 0.5, 0.0);
+  }
+
+  __device__ vec3 sample_square_stratified(const unsigned int s_i,
+                                           const unsigned int s_j,
+                                           curandState *state) const {
+    // stratified sample_square()
+    //  returns a vector to a random point in the [-0.5, -0.5] to [+0.5, +0.5]
+    float px = ((s_i + random_float(state)) * recip_sqrt_spp) - 0.5f;
+    float py = ((s_j + random_float(state)) * recip_sqrt_spp) - 0.5f;
+    return vec3(px, py, 0);
   }
 
 public:
@@ -111,9 +128,11 @@ public:
                           curandState *state) { // TODO change this later
     interval color_intensity = interval(0.000f, 0.999f);
     color pixel_color(0., 0., 0.);
-    for (int sample = 0; sample < samples_per_pixel; sample++) {
-      ray r = get_ray(col, row, state);
-      pixel_color += ray_color(r, world, max_depth, state);
+    for (int s_i = 0; s_i < sqrt_spp; s_i++) {
+      for (int s_j = 0; s_j < sqrt_spp; s_j++) {
+        ray r = get_ray(col, row, s_i, s_j, state);
+        pixel_color += ray_color(r, world, max_depth, state);
+      }
     }
     color gamma_corrected_color =
         linear_to_gamma(pixel_color * pixel_sample_scale);
@@ -124,13 +143,15 @@ public:
     image_height = int(image_width / aspect_ratio);
     image_height = image_height < 1 ? 1 : image_height;
 
-    pixel_sample_scale = 1.0 / samples_per_pixel;
+    sqrt_spp = int(sqrtf(samples_per_pixel));
+    pixel_sample_scale = 1.0f / (sqrt_spp * sqrt_spp);
+    recip_sqrt_spp = 1.f / sqrt_spp;
 
     camera_center = lookfrom;
     // float focal_length = (lookat - lookfrom).length();
     float theta = degree_to_radian(vFov);
     float h = tanf(theta / 2);
-    float viewport_height = 2.0 * h * focus_distance;
+    float viewport_height = 2.0f * h * focus_distance;
     float viewport_width =
         viewport_height * (float(image_width) / image_height);
 
@@ -149,7 +170,7 @@ public:
 
     // get upper left pixel (0, 0)
     point3 viewport_upper_left = camera_center - (focus_distance * w) -
-                                 0.5 * (viewport_v)-0.5 * (viewport_u);
+                                 0.5f * (viewport_v)-0.5f * (viewport_u);
     pixel_00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) / 2);
 
     // camera defocus disk

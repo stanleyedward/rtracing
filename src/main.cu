@@ -1,3 +1,13 @@
+/*
+stratification.
+random_float = [-1, 1]
+i goes from 0 to 999
+so i + random_float() is gonna be from [-1, 1000]
+div by 1000 -> -0.001, 1
+*2 -> -0.002 , 2
+-1 -> ~-1, 1
+*/
+
 #include "utils.cuh"
 #include "common.cuh"
 #include "scenes.cuh"
@@ -9,7 +19,7 @@
 #include "camera.cuh"
 #include <iostream>
 
-#define SCENE_NUMBER 4
+#define SCENE_NUMBER 1
 #define SEED 2004
 
 __global__ void render(float *output_image, hittable **world, camera *cam,

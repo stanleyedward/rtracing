@@ -56,7 +56,7 @@ public:
   }
 };
 
-class rotate_y : public hittable { //rotates from world origin on yaxis
+class rotate_y : public hittable { // rotates from world origin on yaxis
 private:
   hittable *object;
   aabb bbox;
