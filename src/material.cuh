@@ -16,6 +16,12 @@ public:
                                   curandState *state) const {
     return false;
   }
+
+  __device__ virtual float scattering_pdf(const ray &ray_in,
+                                          const hit_record &record,
+                                          const ray &scattered) const {
+    return 0;
+  }
 };
 
 class lambertian : public material {
@@ -37,6 +43,12 @@ public:
     scattered = ray(record.p, lambertian_scatttered_direction, r_in.time());
     attenuation = tex->value(record.u, record.v, record.p);
     return true;
+  }
+
+  __device__ float scattering_pdf(const ray &ray_in, const hit_record &record,
+                                  const ray &scattered) const override {
+    float cos_theta = dot(record.normal, unit_vector(scattered.direction()));
+    return cos_theta < 0 ? 0 : cos_theta / pi;
   }
 };
 

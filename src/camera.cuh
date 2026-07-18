@@ -54,7 +54,11 @@ private:
         break;
       }
 
-      throughput *= attenuation;
+      float scattering_pdf =
+          record.mat->scattering_pdf(current_ray, record, scattered);
+      float pdf_value = scattering_pdf;
+
+      throughput *= attenuation * scattering_pdf / pdf_value;
       current_ray = scattered;
     }
     return final_color;
