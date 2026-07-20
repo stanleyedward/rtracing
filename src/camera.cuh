@@ -46,17 +46,18 @@ private:
 
       ray scattered;
       color attenuation;
+      float pdf_value;
       color color_from_emission =
           record.mat->emitted(record.u, record.v, record.p);
       final_color += throughput * color_from_emission;
       if (!record.mat->scatter(current_ray, record, attenuation, scattered,
-                               state)) {
+                               pdf_value, state)) {
         break;
       }
 
       float scattering_pdf =
           record.mat->scattering_pdf(current_ray, record, scattered);
-      float pdf_value = scattering_pdf;
+      pdf_value = scattering_pdf;
 
       throughput *= attenuation * scattering_pdf / pdf_value;
       current_ray = scattered;

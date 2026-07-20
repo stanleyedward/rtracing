@@ -188,4 +188,16 @@ __device__ inline vec3 refract(const vec3 &uv, const vec3 &normal,
   vec3 r_out = r_out_parallel + r_out_perp;
   return r_out;
 }
+
+__device__ inline vec3 random_cosine_direction(curandState *state) {
+  auto r1 = random_float(state);
+  auto r2 = random_float(state);
+
+  auto phi = 2 * pi * r1;
+  auto x = cosf(phi) * sqrtf(r2);
+  auto y = sinf(phi) * sqrtf(r2);
+  auto z = sqrtf(1 - r2);
+
+  return vec3(x, y, z);
+}
 #endif
