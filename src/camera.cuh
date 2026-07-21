@@ -50,14 +50,33 @@ private:
       color color_from_emission =
           record.mat->emitted(record.u, record.v, record.p);
       final_color += throughput * color_from_emission;
+
       if (!record.mat->scatter(current_ray, record, attenuation, scattered,
                                pdf_value, state)) {
         break;
       }
 
+      // //importance sampl
+      point3 on_light = point3(random_float(213, 343, state), 554,
+                               random_float(227, 332, state));
+      vec3 to_light = on_light - record.p;
+      float distance_squared = to_light.length_squared();
+      to_light = unit_vector(to_light);
+
+      if (dot(to_light, record.normal) < 0)
+        break;
+
+      float light_area = (343 - 213) * (332 - 227);
+      float light_cosine = fabsf(to_light.y());
+
+      if (light_cosine < 0.000001f)
+        break;
+
+      pdf_value = distance_squared / (light_cosine * light_area);
+      scattered = ray(record.p, to_light, r.time());
+
       float scattering_pdf =
           record.mat->scattering_pdf(current_ray, record, scattered);
-      pdf_value = scattering_pdf;
 
       throughput *= attenuation * scattering_pdf / pdf_value;
       current_ray = scattered;

@@ -49,13 +49,14 @@ public:
     auto scatter_direction = uvw.transform(random_cosine_direction(state));
     scattered = ray(record.p, unit_vector(scatter_direction), r_in.time());
     attenuation = tex->value(record.u, record.v, record.p);
-    pdf = dot(uvw.w(), scattered.direction()) / pi; //denom p()
+    pdf = dot(uvw.w(), scattered.direction()) / pi; // denom p()
 
     return true;
   }
 
-  __device__ float scattering_pdf(const ray &ray_in, const hit_record &record,
-                                  const ray &scattered) const override { //numerator pScatter)
+  __device__ float
+  scattering_pdf(const ray &ray_in, const hit_record &record,
+                 const ray &scattered) const override { // numerator pScatter)
     float cos_theta = dot(record.normal, unit_vector(scattered.direction()));
     return cos_theta < 0 ? 0 : cos_theta / pi;
   }
