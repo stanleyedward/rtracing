@@ -9,7 +9,8 @@
 class material {
 public:
   __device__ virtual ~material() = default;
-  __device__ virtual color emitted(float u, float v, const point3 &p) const {
+  __device__ virtual color emitted(const ray &r_in, const hit_record &rec,
+                                   float u, float v, const point3 &p) const {
     return color(0, 0, 0);
   }
   __device__ virtual bool scatter(const ray &r_in, const hit_record &record,
@@ -59,6 +60,7 @@ public:
                  const ray &scattered) const override { // numerator pScatter)
     float cos_theta = dot(record.normal, unit_vector(scattered.direction()));
     return cos_theta < 0 ? 0 : cos_theta / pi;
+    // return 1 / (2 * pi); //uniform pscatt()
   }
 };
 
@@ -69,7 +71,10 @@ private:
 public:
   __device__ diffuse_light(texture *tex) : tex(tex) {}
   __device__ diffuse_light(const color &emit) : tex(new solid_color(emit)) {}
-  __device__ color emitted(float u, float v, const point3 &p) const override {
+  __device__ color emitted(const ray &r_in, const hit_record &rec, float u,
+                           float v, const point3 &p) const override {
+    if (!rec.front_face)
+      return color(0, 0, 0);
     return tex->value(u, v, p);
   }
 };

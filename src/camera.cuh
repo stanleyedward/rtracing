@@ -28,8 +28,7 @@ private:
 
     for (int i = 0; i < depth; i++) {
       hit_record record;
-      if (!world->hit(current_ray, interval(0.0001f, infinity), record,
-                      state)) {
+      if (!world->hit(current_ray, interval(0.001f, infinity), record, state)) {
         if (use_sky_gradient) {
           vec3 unit_vector_r = unit_vector(current_ray.direction());
           // go from [-1, 1] to [0, 1]
@@ -48,15 +47,14 @@ private:
       color attenuation;
       float pdf_value;
       color color_from_emission =
-          record.mat->emitted(record.u, record.v, record.p);
+          record.mat->emitted(r, record, record.u, record.v, record.p);
       final_color += throughput * color_from_emission;
 
       if (!record.mat->scatter(current_ray, record, attenuation, scattered,
-                               pdf_value, state)) {
+                               pdf_value, state))
         break;
-      }
 
-      // //importance sampl
+      // light sampl
       point3 on_light = point3(random_float(213, 343, state), 554,
                                random_float(227, 332, state));
       vec3 to_light = on_light - record.p;
@@ -65,16 +63,13 @@ private:
 
       if (dot(to_light, record.normal) < 0)
         break;
-
       float light_area = (343 - 213) * (332 - 227);
       float light_cosine = fabsf(to_light.y());
-
       if (light_cosine < 0.000001f)
         break;
 
       pdf_value = distance_squared / (light_cosine * light_area);
-      scattered = ray(record.p, to_light, r.time());
-
+      scattered = ray(record.p, to_light, current_ray.time());
       float scattering_pdf =
           record.mat->scattering_pdf(current_ray, record, scattered);
 
