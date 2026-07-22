@@ -60,7 +60,7 @@ public:
                  const ray &scattered) const override { // numerator pScatter)
     float cos_theta = dot(record.normal, unit_vector(scattered.direction()));
     return cos_theta < 0 ? 0 : cos_theta / pi;
-    // return 1 / (2 * pi); //uniform pscatt()
+    // return 1 / (2 * pi); // uniform pscatt()
   }
 };
 

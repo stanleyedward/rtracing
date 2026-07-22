@@ -54,6 +54,7 @@ int main() {
   std::unique_ptr<Scene> scene;
   switch (SCENE_NUMBER) {
   case 1:
+    cudaDeviceSetLimit(cudaLimitStackSize, 8192);
     scene = Scene::cornell_box(d_init_rand_state);
     break;
   case 2:
@@ -94,6 +95,7 @@ int main() {
 
   CHECK_CUDA(
       cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float)));
+  std::clog << "[INFO] started rendering.\n";
   timer.begin();
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(
       d_output_image, scene->d_world, scene->d_cam, d_render_states);

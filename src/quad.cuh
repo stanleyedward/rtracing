@@ -3,6 +3,7 @@
 
 #include "hittable.cuh"
 #include "hittable_list.cuh"
+#include "interval.cuh"
 
 class quad : public hittable {
 protected:
@@ -14,6 +15,7 @@ protected:
   float D;
   vec3 normal;
   vec3 w;
+  float area;
 
 public:
   __device__ quad(const point3 &Q, const vec3 &u, const vec3 &v, material *mat)
@@ -22,6 +24,9 @@ public:
     normal = unit_vector(n);
     D = dot(normal, Q);
     w = n / dot(n, n);
+
+    area = n.length();
+
     set_bounding_box();
   }
   __device__ virtual void set_bounding_box() {
@@ -69,6 +74,20 @@ public:
   }
 
   __device__ aabb bounding_box() const override { return bbox; }
+
+  __device__ float pdf_value(const point3& origin, const vec3& direction, curandState* state) const override {
+    hit_record rec;
+    if (!this->hit(ray(origin, direction), interval(0.001f, infinity), rec, state)) return 0;
+
+    float distance_squared = rec.t * rec.t * direction.length_squared();
+    float cosine = fabsf(dot(direction, rec.normal) / direction.length());
+    return distance_squared / (cosine * area);
+  }
+
+  __device__ vec3 random(const point3& origin, curandState* state) const override {
+    vec3 p = Q + (random_float(state) * u ) + (random_float(state) * v);
+    return p - origin;
+  }
 };
 
 class tri : public quad {
