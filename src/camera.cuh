@@ -83,9 +83,11 @@ private:
       // float scattering_pdf = // numerator pScatter()
       //     record.mat->scattering_pdf(current_ray, record, scattered);
 
-      hittable_pdf light_pdf(*lights, record.p);
-      scattered = ray(record.p, light_pdf.generate(state), current_ray.time());
-      pdf_value = light_pdf.value(scattered.direction(), state);
+      hittable_pdf p0(*lights, record.p);
+      cosine_pdf p1(record.normal);
+      mixture_pdf mixed_pdf(&p0, &p1);
+      scattered = ray(record.p, mixed_pdf.generate(state), current_ray.time());
+      pdf_value = mixed_pdf.value(scattered.direction(), state);
 
       float scattering_pdf =
           record.mat->scattering_pdf(current_ray, record, scattered);

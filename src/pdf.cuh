@@ -34,12 +34,12 @@ private:
 
 public:
   __device__ cosine_pdf(const vec3 &w) : uvw(w) {}
-  __device__ virtual float value(const vec3 &direction,
-                                 curandState *state) const override {
+  __device__ float value(const vec3 &direction,
+                         curandState *state) const override {
     float cos_theta = dot(unit_vector(direction), uvw.w());
     return cos_theta < 0 ? 0 : cos_theta / pi;
   }
-  __device__ virtual vec3 generate(curandState *state) const override {
+  __device__ vec3 generate(curandState *state) const override {
     return uvw.transform(random_cosine_direction(state));
   }
 };
@@ -53,12 +53,36 @@ public:
   __device__ hittable_pdf(const hittable &objects, const point3 &origin)
       : objects(objects), origin(origin) {}
 
-  __device__ virtual float value(const vec3 &direction,
-                                 curandState *state) const override {
+  __device__ float value(const vec3 &direction,
+                         curandState *state) const override {
     return objects.pdf_value(origin, direction, state);
   }
-  __device__ virtual vec3 generate(curandState *state) const override {
+  __device__ vec3 generate(curandState *state) const override {
     return objects.random(origin, state);
+  }
+};
+
+class mixture_pdf : public pdf {
+private:
+  pdf *p[2];
+
+public:
+  __device__ mixture_pdf(pdf *p0, pdf *p1) {
+    p[0] = p0;
+    p[1] = p1;
+  }
+
+  __device__ float value(const vec3 &direction,
+                         curandState *state) const override {
+    return (0.5 * p[0]->value(direction, state)) +
+           (0.5f * p[1]->value(direction, state));
+  }
+
+  __device__ vec3 generate(curandState *state) const override {
+    if (random_float(state) < 0.5)
+      return p[0]->generate(state);
+    else
+      return p[1]->generate(state);
   }
 };
 
