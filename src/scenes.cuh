@@ -127,14 +127,16 @@ __global__ void create_final_scene_kernel(hittable **world, camera *cam,
   cam->initialize();
 }
 
-__global__ void create_cornell_box_kernel(hittable **world, camera *cam,
-                                          GPUImage *textures,
+__global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
+                                          camera *cam, GPUImage *textures,
                                           curandState *state) {
   if (!(threadIdx.x == 0 && blockIdx.x == 0))
     return;
   // init_world
   hittable **objects_list = new hittable *[8];
+  hittable **lights_list = new hittable *[1];
   unsigned int object_count = 0;
+  unsigned int light_count = 0;
 
   // walls
   auto red = new lambertian(color(.65, .05, .05));
@@ -167,6 +169,15 @@ __global__ void create_cornell_box_kernel(hittable **world, camera *cam,
   box2 = new translate(box2, vec3(130, 0, 65));
   objects_list[object_count++] = box2;
 
+  // light sources
+  auto empty_material = new material();
+  // lights_list[light_count++] = new quad(point3(343, 554, 332), vec3(-130, 0,
+  // 0),
+  //                                       vec3(0, 0, -105), empty_material);
+  // *lights = new hittable_list(lights_list, light_count);
+
+  *lights = new quad(point3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105),
+                     empty_material);
   bool use_bvh = USE_BVH;
 
   if (use_bvh) {
@@ -178,8 +189,7 @@ __global__ void create_cornell_box_kernel(hittable **world, camera *cam,
   // init_camera
   cam->aspect_ratio = 1.0;
   cam->image_width = 600;
-  cam->samples_per_pixel = 1000;
-  // cam->samples_per_pixel = 10;
+  cam->samples_per_pixel = 10;
   cam->max_depth = 50;
   cam->background = color(0, 0, 0);
   cam->use_sky_gradient = false;
@@ -265,13 +275,16 @@ public:
 
   // gpu res
   hittable **d_world;
+  hittable **d_lights;
   camera *d_cam;
   GPUImage *d_textures;
   int num_textures;
 
   Scene()
-      : d_world(nullptr), d_cam(nullptr), d_textures(nullptr), num_textures(0) {
+      : d_world(nullptr), d_lights(nullptr), d_cam(nullptr),
+        d_textures(nullptr), num_textures(0) {
     CHECK_CUDA(cudaMalloc(&d_world, sizeof(hittable *)));
+    CHECK_CUDA(cudaMalloc(&d_lights, sizeof(hittable *)));
     CHECK_CUDA(cudaMalloc(&d_cam, sizeof(camera)));
   }
 
@@ -279,6 +292,8 @@ public:
     // TODO: free world kernel somehow
     if (d_world)
       cudaFree(d_world);
+    if (d_lights)
+      cudaFree(d_lights);
     if (d_cam)
       cudaFree(d_cam);
     if (d_textures)
@@ -299,8 +314,9 @@ public:
     CHECK_CUDA(cudaMemcpy(scene->d_textures, textures,
                           scene->num_textures * sizeof(GPUImage),
                           cudaMemcpyHostToDevice));
-    create_cornell_box_kernel<<<1, 1>>>(scene->d_world, scene->d_cam,
-                                        scene->d_textures, init_state);
+    create_cornell_box_kernel<<<1, 1>>>(scene->d_world, scene->d_lights,
+                                        scene->d_cam, scene->d_textures,
+                                        init_state);
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());
     return scene;
