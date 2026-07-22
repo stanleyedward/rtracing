@@ -31,11 +31,14 @@ public:
                               curandState *state) const = 0;
   __device__ virtual aabb bounding_box() const = 0;
   __device__ virtual bool is_bvh() const { return false; }
-  __device__ virtual float pdf_value(const point3& origin, const vec3& direction, curandState* state) const {
+  __device__ virtual float pdf_value(const point3 &origin,
+                                     const vec3 &direction,
+                                     curandState *state) const {
     return 0.f;
   }
-  __device__ virtual vec3 random(const point3& origin, curandState* state) const {
-    return vec3(1,0,0);
+  __device__ virtual vec3 random(const point3 &origin,
+                                 curandState *state) const {
+    return vec3(1, 0, 0);
   }
 };
 

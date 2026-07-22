@@ -22,8 +22,8 @@ div by 1000 -> -0.001, 1
 #define SCENE_NUMBER 1
 #define SEED 2004
 
-__global__ void render(float *output_image, hittable **world, camera *cam,
-                       curandState *render_states) {
+__global__ void render(float *output_image, hittable **world, hittable **lights,
+                       camera *cam, curandState *render_states) {
   unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
   unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
   if (row >= cam->image_height || col >= cam->image_width)
@@ -31,7 +31,7 @@ __global__ void render(float *output_image, hittable **world, camera *cam,
   vec3 pixel_color;
   unsigned int pixel_idx = row * cam->image_width + col;
   curandState local_rand_state = render_states[row * cam->image_width + col];
-  pixel_color = cam->render(row, col, *world, &local_rand_state);
+  pixel_color = cam->render(row, col, *world, *lights, &local_rand_state);
   unsigned int output_idx = pixel_idx * 3;
 #pragma unroll 3
   for (int i = 0; i < 3; i++)
@@ -98,7 +98,8 @@ int main() {
   std::clog << "[INFO] started rendering.\n";
   timer.begin();
   render<<<numBlocksPerGrid, numThreadsPerBlock>>>(
-      d_output_image, scene->d_world, scene->d_cam, d_render_states);
+      d_output_image, scene->d_world, scene->d_lights, scene->d_cam,
+      d_render_states);
   float time = timer.end();
   CHECK_CUDA(cudaGetLastError());
   CHECK_CUDA(cudaDeviceSynchronize());

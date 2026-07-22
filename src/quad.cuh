@@ -75,17 +75,21 @@ public:
 
   __device__ aabb bounding_box() const override { return bbox; }
 
-  __device__ float pdf_value(const point3& origin, const vec3& direction, curandState* state) const override {
+  __device__ float pdf_value(const point3 &origin, const vec3 &direction,
+                             curandState *state) const override {
     hit_record rec;
-    if (!this->hit(ray(origin, direction), interval(0.001f, infinity), rec, state)) return 0;
+    if (!this->hit(ray(origin, direction), interval(0.001f, infinity), rec,
+                   state))
+      return 0;
 
     float distance_squared = rec.t * rec.t * direction.length_squared();
     float cosine = fabsf(dot(direction, rec.normal) / direction.length());
     return distance_squared / (cosine * area);
   }
 
-  __device__ vec3 random(const point3& origin, curandState* state) const override {
-    vec3 p = Q + (random_float(state) * u ) + (random_float(state) * v);
+  __device__ vec3 random(const point3 &origin,
+                         curandState *state) const override {
+    vec3 p = Q + (random_float(state) * u) + (random_float(state) * v);
     return p - origin;
   }
 };

@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "common.cuh"
+#include "cuda.h"
 #include "hittable.cuh"
 #include "interval.cuh"
 #include "material.cuh"
@@ -21,8 +22,9 @@ private:
   int sqrt_spp;
   float recip_sqrt_spp;
 
-  __device__ color ray_color(const ray &r, const hittable *world, int depth,
-                             curandState *state) {
+  __device__ color ray_color(const ray &r, const hittable *world,
+                             const hittable *lights, int depth,
+                             curandState *state) const {
     color final_color = color(0.f, 0.f, 0.f);
     color throughput = color(1.f, 1.f, 1.f);
     ray current_ray = r;
@@ -47,8 +49,8 @@ private:
       ray scattered;
       color attenuation;
       float pdf_value;
-      color color_from_emission =
-          record.mat->emitted(r, record, record.u, record.v, record.p);
+      color color_from_emission = record.mat->emitted(
+          current_ray, record, record.u, record.v, record.p);
       final_color += throughput * color_from_emission;
 
       if (!record.mat->scatter(current_ray, record, attenuation, scattered,
@@ -72,12 +74,20 @@ private:
       // pdf_value = distance_squared / (light_cosine * light_area); //denom
       // p(x) scattered = ray(record.p, to_light, current_ray.time());
 
-      cosine_pdf surface_pdf(record.normal);
-      scattered =
-          ray(record.p, surface_pdf.generate(state), current_ray.time());
-      pdf_value = surface_pdf.value(scattered.direction(), state);
+      // cosine smapl
+      //  cosine_pdf surface_pdf(record.normal);
+      //  scattered =
+      //      ray(record.p, surface_pdf.generate(state), current_ray.time());
+      //  pdf_value = surface_pdf.value(scattered.direction(), state);
 
-      float scattering_pdf = // numerator pScatter()
+      // float scattering_pdf = // numerator pScatter()
+      //     record.mat->scattering_pdf(current_ray, record, scattered);
+
+      hittable_pdf light_pdf(*lights, record.p);
+      scattered = ray(record.p, light_pdf.generate(state), current_ray.time());
+      pdf_value = light_pdf.value(scattered.direction(), state);
+
+      float scattering_pdf =
           record.mat->scattering_pdf(current_ray, record, scattered);
 
       throughput *= attenuation * scattering_pdf / pdf_value;
@@ -150,14 +160,14 @@ public:
   bool use_sky_gradient = false;
 
   __device__ color render(const unsigned int row, const unsigned int col,
-                          const hittable *world,
+                          const hittable *world, const hittable *lights,
                           curandState *state) { // TODO change this later
     interval color_intensity = interval(0.000f, 0.999f);
     color pixel_color(0., 0., 0.);
     for (int s_i = 0; s_i < sqrt_spp; s_i++) {
       for (int s_j = 0; s_j < sqrt_spp; s_j++) {
         ray r = get_ray(col, row, s_i, s_j, state);
-        pixel_color += ray_color(r, world, max_depth, state);
+        pixel_color += ray_color(r, world, lights, max_depth, state);
       }
     }
     color gamma_corrected_color =
