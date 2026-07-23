@@ -46,53 +46,31 @@ private:
         break;
       }
 
-      ray scattered;
-      color attenuation;
-      float pdf_value;
+      scatter_record srecord;
       color color_from_emission = record.mat->emitted(
           current_ray, record, record.u, record.v, record.p);
       final_color += throughput * color_from_emission;
 
-      if (!record.mat->scatter(current_ray, record, attenuation, scattered,
-                               pdf_value, state))
+      if (!record.mat->scatter(current_ray, record, srecord, state))
         break;
 
-      // light sampl
-      // point3 on_light = point3(random_float(213, 343, state), 554,
-      //                          random_float(227, 332, state));
-      // vec3 to_light = on_light - record.p;
-      // float distance_squared = to_light.length_squared();
-      // to_light = unit_vector(to_light);
+      if (srecord.skip_pdf) {
+        throughput *= srecord.attenuation;
+        current_ray = srecord.skip_pdf_ray;
+        continue;
+      }
 
-      // if (dot(to_light, record.normal) < 0)
-      //   break;
-      // float light_area = (343 - 213) * (332 - 227);
-      // float light_cosine = fabsf(to_light.y());
-      // if (light_cosine < 0.000001f)
-      //   break;
+      hittable_pdf light_pdf(*lights, record.p);
+      surface_pdf_holder surface_pdf(srecord.pdf_type, record.normal);
+      mixture_pdf mixed_pdf(&light_pdf, surface_pdf.ptr);
 
-      // pdf_value = distance_squared / (light_cosine * light_area); //denom
-      // p(x) scattered = ray(record.p, to_light, current_ray.time());
-
-      // cosine smapl
-      //  cosine_pdf surface_pdf(record.normal);
-      //  scattered =
-      //      ray(record.p, surface_pdf.generate(state), current_ray.time());
-      //  pdf_value = surface_pdf.value(scattered.direction(), state);
-
-      // float scattering_pdf = // numerator pScatter()
-      //     record.mat->scattering_pdf(current_ray, record, scattered);
-
-      hittable_pdf p0(*lights, record.p);
-      cosine_pdf p1(record.normal);
-      mixture_pdf mixed_pdf(&p0, &p1);
-      scattered = ray(record.p, mixed_pdf.generate(state), current_ray.time());
-      pdf_value = mixed_pdf.value(scattered.direction(), state);
-
+      ray scattered =
+          ray(record.p, mixed_pdf.generate(state), current_ray.time());
+      auto pdf_value = mixed_pdf.value(scattered.direction(), state);
       float scattering_pdf =
           record.mat->scattering_pdf(current_ray, record, scattered);
 
-      throughput *= attenuation * scattering_pdf / pdf_value;
+      throughput *= srecord.attenuation * scattering_pdf / pdf_value;
       current_ray = scattered;
     }
     return final_color;
@@ -161,22 +139,6 @@ public:
   color background;
   bool use_sky_gradient = false;
 
-  __device__ color render(const unsigned int row, const unsigned int col,
-                          const hittable *world, const hittable *lights,
-                          curandState *state) { // TODO change this later
-    interval color_intensity = interval(0.000f, 0.999f);
-    color pixel_color(0., 0., 0.);
-    for (int s_i = 0; s_i < sqrt_spp; s_i++) {
-      for (int s_j = 0; s_j < sqrt_spp; s_j++) {
-        ray r = get_ray(col, row, s_i, s_j, state);
-        pixel_color += ray_color(r, world, lights, max_depth, state);
-      }
-    }
-    color gamma_corrected_color =
-        linear_to_gamma(pixel_color * pixel_sample_scale);
-    return color_intensity.clamp(gamma_corrected_color);
-  }
-
   __device__ void initialize() {
     image_height = int(image_width / aspect_ratio);
     image_height = image_height < 1 ? 1 : image_height;
@@ -216,6 +178,22 @@ public:
         focus_distance * tanf(degree_to_radian(defocus_angle / 2));
     defocus_disk_u = u * defocus_radius;
     defocus_disk_v = v * defocus_radius;
+  }
+
+  __device__ color render(const unsigned int row, const unsigned int col,
+                          const hittable *world, const hittable *lights,
+                          curandState *state) { // TODO change this later
+    interval color_intensity = interval(0.000f, 0.999f);
+    color pixel_color(0., 0., 0.);
+    for (int s_i = 0; s_i < sqrt_spp; s_i++) {
+      for (int s_j = 0; s_j < sqrt_spp; s_j++) {
+        ray r = get_ray(col, row, s_i, s_j, state);
+        pixel_color += ray_color(r, world, lights, max_depth, state);
+      }
+    }
+    color gamma_corrected_color =
+        linear_to_gamma(pixel_color * pixel_sample_scale);
+    return color_intensity.clamp(gamma_corrected_color);
   }
 };
 

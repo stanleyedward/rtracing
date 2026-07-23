@@ -15,3 +15,4 @@ note:i have redundant imports because LSP was being annoying (help)
 #### optimization
 - maybe remove virtual dispatch and use flat structs for mem locality and no vtable traversal (will take time)
 - faster bvh construction with structs too : https://developer.nvidia.com/blog/thinking-parallel-part-iii-tree-construction-gpu/
+- shadow rays

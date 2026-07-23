@@ -8,9 +8,11 @@ using color = vec3;
 
 __host__ __device__ inline float linear_to_gamma(float linear_component) {
   if (linear_component > 0) {
+    if (linear_component != linear_component)
+      linear_component = 0.0f; // check for NaN
     return sqrtf(linear_component);
   }
-  return 0;
+  return 0.0f;
 }
 
 __device__ inline color linear_to_gamma(color lin_color) {
@@ -19,15 +21,6 @@ __device__ inline color linear_to_gamma(color lin_color) {
 }
 
 __host__ inline void write_color(std::ostream &out, float r, float g, float b) {
-  // assumes the range [0, 1] for the color!
-  // float r = pixel_color.x();
-  // float g = pixel_color.y();
-  // float b = pixel_color.z();
-
-  // r = linear_to_gamma(r);
-  // g = linear_to_gamma(g);
-  // b = linear_to_gamma(b);
-
   // convert [0, 1] to [0, 255]
   // static const interval intensity(0.000, 0.999);
   int rbyte = int(256 * r);

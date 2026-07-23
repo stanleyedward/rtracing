@@ -5,6 +5,16 @@
 #include "hittable.cuh"
 #include "texture.cuh"
 #include "onb.cuh"
+#include "pdf.cuh"
+#include <cmath>
+
+class scatter_record {
+public:
+  color attenuation;
+  PDFType pdf_type;
+  bool skip_pdf;
+  ray skip_pdf_ray;
+};
 
 class material {
 public:
@@ -13,9 +23,10 @@ public:
                                    float u, float v, const point3 &p) const {
     return color(0, 0, 0);
   }
-  __device__ virtual bool scatter(const ray &r_in, const hit_record &record,
-                                  color &attenuation, ray &scattered,
-                                  float &pdf, curandState *state) const {
+  __device__ virtual bool
+  scatter(const ray &r_in, const hit_record &record, scatter_record &srecord,
+          // color &attenuation, ray &scattered, float &pdf,
+          curandState *state) const {
     return false;
   }
 
@@ -35,22 +46,13 @@ public:
   __device__ lambertian(texture *tex) : tex(tex) {}
 
   __device__ bool scatter(const ray &r_in, const hit_record &record,
-                          color &attenuation, ray &scattered, float &pdf,
+                          scatter_record &srecord,
+                          // color &attenuation, ray &scattered, float &pdf,
                           curandState *state) const override {
-    // vec3 lambertian_scatttered_direction =
-    //     record.normal + random_unit_vector(state);     // lambertian
-    // if (lambertian_scatttered_direction.near_zero()) { // edge
-    //   lambertian_scatttered_direction = record.normal;
-    // }
-    // scattered = ray(record.p, lambertian_scatttered_direction, r_in.time());
-    // attenuation = tex->value(record.u, record.v, record.p);
-    // return true;
 
-    onb uvw(record.normal);
-    auto scatter_direction = uvw.transform(random_cosine_direction(state));
-    scattered = ray(record.p, unit_vector(scatter_direction), r_in.time());
-    attenuation = tex->value(record.u, record.v, record.p);
-    pdf = dot(uvw.w(), scattered.direction()) / pi; // denom p()
+    srecord.attenuation = tex->value(record.u, record.v, record.p);
+    srecord.pdf_type = PDF_COSINE;
+    srecord.skip_pdf = false;
 
     return true;
   }
@@ -84,14 +86,16 @@ public:
   __device__ metal(const color &albedo, float fuzz)
       : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
   __device__ bool scatter(const ray &r_in, const hit_record &record,
-                          color &attenuation, ray &scattered, float &pdf,
+                          scatter_record &srec,
                           curandState *state) const override {
     vec3 reflected = reflect(r_in.direction(), record.normal);
     reflected =
         unit_vector(reflected) + (fuzz * random_unit_vector(state)); // add fuzz
-    scattered = ray(record.p, reflected, r_in.time());
-    attenuation = albedo;
-    return (dot(scattered.direction(), record.normal) > 0);
+    srec.attenuation = albedo;
+    srec.pdf_type = PDF_NONE;
+    srec.skip_pdf = true;
+    srec.skip_pdf_ray = ray(record.p, reflected, r_in.time());
+    return true;
   }
 
 private:
@@ -104,9 +108,11 @@ public:
   __device__ dielectric(float refractive_index)
       : refractive_index(refractive_index) {}
   __device__ bool scatter(const ray &r_in, const hit_record &record,
-                          color &attenuation, ray &scattered, float &pdf,
+                          scatter_record &srec,
                           curandState *state) const override {
-    attenuation = color(1.0, 1.0, 1.0);
+    srec.attenuation = color(1.0, 1.0, 1.0);
+    srec.pdf_type = PDF_NONE;
+    srec.skip_pdf = true;
     float ri = record.front_face ? (1.0 / refractive_index) : refractive_index;
 
     vec3 unit_direction =
@@ -124,7 +130,7 @@ public:
     } else {
       direction = refract(unit_direction, record.normal, ri);
     }
-    scattered = ray(record.p, direction, r_in.time());
+    srec.skip_pdf_ray = ray(record.p, direction, r_in.time());
     return true;
   }
 
@@ -148,11 +154,17 @@ public:
   __device__ isotropic(texture *tex) : tex(tex) {}
 
   __device__ bool scatter(const ray &r_in, const hit_record &record,
-                          color &attenuation, ray &scattered, float &pdf,
+                          scatter_record &srecord,
+                          // color &attenuation, ray &scattered, float &pdf,
                           curandState *state) const override {
-    scattered = ray(record.p, random_unit_vector(state), r_in.time());
-    attenuation = tex->value(record.u, record.v, record.p);
-    pdf = 1 / (4 * pi);
+    // scattered = ray(record.p, random_unit_vector(state), r_in.time());
+    // attenuation = tex->value(record.u, record.v, record.p);
+    // pdf = 1 / (4 * pi);
+
+    srecord.attenuation = tex->value(record.u, record.v, record.p);
+    srecord.pdf_type = PDF_SPHERE;
+    srecord.skip_pdf = false;
+
     return true;
   }
 

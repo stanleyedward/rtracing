@@ -33,6 +33,7 @@ private:
   onb uvw;
 
 public:
+  __device__ cosine_pdf() : uvw(vec3(0, 1, 0)) {}
   __device__ cosine_pdf(const vec3 &w) : uvw(w) {}
   __device__ float value(const vec3 &direction,
                          curandState *state) const override {
@@ -83,6 +84,24 @@ public:
       return p[0]->generate(state);
     else
       return p[1]->generate(state);
+  }
+};
+
+enum PDFType { PDF_COSINE, PDF_SPHERE, PDF_NONE };
+
+struct surface_pdf_holder {
+  cosine_pdf cos_pdf;
+  sphere_pdf sph_pdf;
+  pdf *ptr;
+
+  __device__ surface_pdf_holder(PDFType type, const vec3 &normal) {
+    if (type == PDF_COSINE) {
+      cos_pdf = cosine_pdf(normal);
+      ptr = &cos_pdf;
+    } else if (type == PDF_SPHERE) {
+      sph_pdf = sphere_pdf();
+      ptr = &sph_pdf;
+    }
   }
 };
 

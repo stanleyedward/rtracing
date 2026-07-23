@@ -144,6 +144,7 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
   auto green = new lambertian(color(.12, .45, .15));
   auto light = new diffuse_light(color(15, 15, 15));
   auto junior_tex = new image_texture(textures[0]);
+  auto aluminium = new metal(color(0.8, 0.85, 0.88), 0.0);
 
   objects_list[object_count++] =
       new quad(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green);
@@ -159,7 +160,8 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
       new quad(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white);
 
   // boxes
-  hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
+  // hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
+  hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), aluminium);
   box1 = new rotate_y(box1, 15);
   box1 = new translate(box1, vec3(265, 0, 295));
   objects_list[object_count++] = box1;
@@ -189,7 +191,7 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
   // init_camera
   cam->aspect_ratio = 1.0;
   cam->image_width = 600;
-  cam->samples_per_pixel = 10;
+  cam->samples_per_pixel = 1000;
   cam->max_depth = 50;
   cam->background = color(0, 0, 0);
   cam->use_sky_gradient = false;
