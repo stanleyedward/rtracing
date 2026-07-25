@@ -3,6 +3,9 @@
 
 #include "common.cuh"
 #include "hittable.cuh"
+#include "interval.cuh"
+#include "onb.cuh"
+#include <initializer_list>
 
 class sphere : public hittable {
 private:
@@ -10,6 +13,22 @@ private:
   float radius;
   material *mat;
   aabb bbox;
+
+  __device__ static vec3 random_to_sphere(float radius, float distance_squared,
+                                          curandState *state) {
+    float r1 = random_float(state);
+    float r2 = random_float(state);
+    float cos_theta_max = sqrtf(1 - radius * radius / distance_squared);
+    float cos_theta = 1 + r2 * (cos_theta_max - 1);
+    float sin_theta = sqrtf(1 - (cos_theta * cos_theta));
+
+    float phi = 2 * pi * r1;
+    float z = cos_theta;
+    float x = cosf(phi) * sin_theta;
+    float y = sinf(phi) * sin_theta;
+
+    return vec3(x, y, z);
+  }
 
 public:
   __device__ sphere(const point3 &static_center, float r, material *mat)
@@ -69,6 +88,29 @@ public:
     record.mat = mat;
 
     return true;
+  }
+
+  __device__ float pdf_value(const point3 &origin, const vec3 &direction,
+                             curandState *state) const override {
+    // only works for stationary spheres;
+    hit_record rec;
+    if (!this->hit(ray(origin, direction), interval(0.001f, infinity), rec,
+                   state))
+      return 0;
+
+    float distance_squared = (center.at(0) - origin).length_squared();
+    float cos_theta_max = sqrtf(1 - radius * radius / distance_squared);
+    float solid_angle = 2 * pi * (1 - cos_theta_max);
+
+    return 1 / solid_angle;
+  }
+
+  __device__ vec3 random(const point3 &origin,
+                         curandState *state) const override {
+    vec3 direction = center.at(0) - origin;
+    float distance_square = direction.length_squared();
+    onb uvw(direction);
+    return uvw.transform(random_to_sphere(radius, distance_square, state));
   }
 };
 

@@ -54,7 +54,7 @@ private:
       if (!record.mat->scatter(current_ray, record, srecord, state))
         break;
 
-      if (srecord.skip_pdf) {
+      if (srecord.skip_pdf) { // if metal or dielectric
         throughput *= srecord.attenuation;
         current_ray = srecord.skip_pdf_ray;
         continue;

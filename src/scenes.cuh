@@ -145,6 +145,7 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
   auto light = new diffuse_light(color(15, 15, 15));
   auto junior_tex = new image_texture(textures[0]);
   auto aluminium = new metal(color(0.8, 0.85, 0.88), 0.0);
+  auto glass = new dielectric(1.5);
 
   objects_list[object_count++] =
       new quad(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green);
@@ -159,17 +160,22 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
   objects_list[object_count++] =
       new quad(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white);
 
-  // boxes
+  // box1
   // hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
   hittable *box1 = box(point3(0, 0, 0), point3(165, 330, 165), aluminium);
   box1 = new rotate_y(box1, 15);
   box1 = new translate(box1, vec3(265, 0, 295));
   objects_list[object_count++] = box1;
 
-  hittable *box2 = box(point3(0, 0, 0), point3(165, 165, 165), white);
-  box2 = new rotate_y(box2, -18);
-  box2 = new translate(box2, vec3(130, 0, 65));
-  objects_list[object_count++] = box2;
+  // box2
+  //  hittable *box2 = box(point3(0, 0, 0), point3(165, 165, 165), white);
+  //  box2 = new rotate_y(box2, -18);
+  //  box2 = new translate(box2, vec3(130, 0, 65));
+  //  objects_list[object_count++] = box2;
+
+  // glass sphere
+  hittable *glass_sphere = new sphere(point3(190, 90, 190), 90, glass);
+  objects_list[object_count++] = glass_sphere;
 
   // light sources
   auto empty_material = new material();
