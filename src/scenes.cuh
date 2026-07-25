@@ -21,8 +21,8 @@
 
 #define USE_BVH true
 
-__global__ void create_final_scene_kernel(hittable **world, camera *cam,
-                                          GPUImage *textures,
+__global__ void create_final_scene_kernel(hittable **world, hittable **lights,
+                                          camera *cam, GPUImage *textures,
                                           curandState *state, int image_width,
                                           int samples_per_pixel,
                                           int max_depth) {
@@ -110,6 +110,14 @@ __global__ void create_final_scene_kernel(hittable **world, camera *cam,
 
   // final bvh
   *world = bvh_node::create_bvh_tree(objects_list, 0, object_count);
+
+  // lights
+  hittable **lights_list = new hittable *[1];
+  unsigned int light_count = 0;
+  auto empty_material = new material();
+  lights_list[light_count++] = new quad(point3(123, 554, 147), vec3(300, 0, 0),
+                                        vec3(0, 0, 265), empty_material);
+  *lights = new hittable_list(lights_list, light_count);
 
   new (cam) camera();
   cam->aspect_ratio = 1.0;
@@ -358,9 +366,9 @@ public:
                           scene->num_textures * sizeof(GPUImage),
                           cudaMemcpyHostToDevice));
 
-    create_final_scene_kernel<<<1, 1>>>(scene->d_world, scene->d_cam,
-                                        scene->d_textures, init_state,
-                                        image_width, spp, max_depth);
+    create_final_scene_kernel<<<1, 1>>>(
+        scene->d_world, scene->d_lights, scene->d_cam, scene->d_textures,
+        init_state, image_width, spp, max_depth);
 
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());

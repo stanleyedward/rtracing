@@ -9,7 +9,7 @@
 #include "camera.cuh"
 #include <iostream>
 
-#define SCENE_NUMBER 1
+#define SCENE_NUMBER 4
 #define SEED 2004
 
 __global__ void render(float *output_image, hittable **world, hittable **lights,
