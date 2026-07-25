@@ -45,6 +45,23 @@ public:
     }
     return hit_anything;
   }
+
+  __device__ float pdf_value(const point3 &origin, const vec3 &direction,
+                             curandState *state) const override {
+    float weight = 1.0f / list_size;
+    float sum = 0.0f;
+
+    for (int i = 0; i < list_size; i++) {
+      sum += weight * objects[i]->pdf_value(origin, direction, state);
+    }
+    return sum;
+  }
+
+  __device__ vec3 random(const point3 &origin,
+                         curandState *state) const override {
+    auto int_size = int(list_size);
+    return objects[random_int(0, int_size - 1, state)]->random(origin, state);
+  }
 };
 
 #endif

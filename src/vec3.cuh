@@ -15,7 +15,8 @@ __device__ inline float random_float(float min, float max, curandState *state) {
 }
 
 __device__ inline int random_int(int min, int max, curandState *state) {
-  return int(random_float(min, max + 1, state));
+  int r = int(random_float(min, max + 1, state));
+  return r > max ? max : r;
 }
 
 class vec3 {

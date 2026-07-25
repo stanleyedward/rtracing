@@ -134,7 +134,7 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
     return;
   // init_world
   hittable **objects_list = new hittable *[8];
-  hittable **lights_list = new hittable *[1];
+  hittable **lights_list = new hittable *[2];
   unsigned int object_count = 0;
   unsigned int light_count = 0;
 
@@ -179,13 +179,12 @@ __global__ void create_cornell_box_kernel(hittable **world, hittable **lights,
 
   // light sources
   auto empty_material = new material();
-  // lights_list[light_count++] = new quad(point3(343, 554, 332), vec3(-130, 0,
-  // 0),
-  //                                       vec3(0, 0, -105), empty_material);
-  // *lights = new hittable_list(lights_list, light_count);
+  lights_list[light_count++] = new quad(point3(343, 554, 332), vec3(-130, 0, 0),
+                                        vec3(0, 0, -105), empty_material);
+  lights_list[light_count++] =
+      new sphere(point3(190, 90, 190), 90, empty_material);
+  *lights = new hittable_list(lights_list, light_count);
 
-  *lights = new quad(point3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105),
-                     empty_material);
   bool use_bvh = USE_BVH;
 
   if (use_bvh) {
