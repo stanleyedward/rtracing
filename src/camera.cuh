@@ -63,6 +63,7 @@ private:
       hittable_pdf light_pdf(*lights, record.p);
       surface_pdf_holder surface_pdf(srecord.pdf_type, record.normal);
       mixture_pdf mixed_pdf(&light_pdf, surface_pdf.ptr);
+      // hittable_pdf mixed_pdf(*lights, record.p);
 
       ray scattered =
           ray(record.p, mixed_pdf.generate(state), current_ray.time());
