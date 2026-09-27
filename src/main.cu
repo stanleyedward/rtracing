@@ -1,6 +1,8 @@
+#include "cuda_device_runtime_api.h"
 #include "utils.cuh"
 #include "common.cuh"
 #include "scenes.cuh"
+#include "radiance_caching.cuh"
 
 #include "cuda_runtime.h"
 #include "cuda_runtime_api.h"
@@ -11,7 +13,7 @@
 
 #define SCENE_NUMBER 1
 #define SEED 2004
-#define RADIANCE_CACHINE false //for now
+#define RADIANCE_CACHING false //for now
 
 __global__ void render(float *output_image, hittable **world, hittable **lights,
                        camera *cam, curandState *render_states) {
@@ -84,6 +86,19 @@ int main() {
   float *h_output_image;
   h_output_image = (float *)malloc(output_image_size * CH * sizeof(float));
 
+  radiance_cache* d_radcache = nullptr;
+  cache_cell* d_cells = nullptr;
+  if (RADIANCE_CACHING){
+    size_t n_cells = CACHE_RES*CACHE_RES*CACHE_RES*CACHE_BINS;
+    CHECK_CUDA(cudaMalloc(&d_cells, n_cells*sizeof(cache_cell)));
+    CHECK_CUDA(cudaMemset(&d_cells, 0, n_cells*sizeof(cache_cell)));
+    CHECK_CUDA(cudaMalloc(&d_radcache, sizeof(radiance_cache)));
+
+    init_cache_kernel<<<1,1>>>(d_radcache, d_cells, d_world);
+    CHECK_CUDA(cudaGetLastError());
+    CHECK_CUDA(cudaDeviceSynchronize());
+  }
+
   CHECK_CUDA(
       cudaMalloc(&d_output_image, output_image_size * CH * sizeof(float)));
   std::clog << "[INFO] started rendering.\n";
@@ -114,10 +129,13 @@ int main() {
     }
   }
 
-  // free - figure out how to do this.
+  // free - figure out how to do this properly if we wnat animations.
   free(h_output_image);
   cudaFree(d_output_image);
   cudaFree(d_render_states);
   cudaFree(d_init_rand_state);
+  if(d_radcache) CHECK_CUDA(cudaFree(d_radcache));
+  if(d_cells) CHECK_CUDA(cudaFree(d_cells));
+
   return 0;
 }
