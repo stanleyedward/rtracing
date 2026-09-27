@@ -11,6 +11,7 @@
 
 #define SCENE_NUMBER 1
 #define SEED 2004
+#define RADIANCE_CACHINE false //for now
 
 __global__ void render(float *output_image, hittable **world, hittable **lights,
                        camera *cam, curandState *render_states) {

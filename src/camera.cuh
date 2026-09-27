@@ -2,7 +2,6 @@
 #define CAMERA_H
 
 #include "common.cuh"
-#include "cuda.h"
 #include "hittable.cuh"
 #include "interval.cuh"
 #include "material.cuh"
