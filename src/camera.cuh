@@ -25,17 +25,16 @@ private:
 
   __device__ color ray_color(const ray &r, const hittable *world,
                              const hittable *lights, int depth,
-                             radiance_cache* cache, bool updating,
+                             radiance_cache *cache, bool updating,
                              curandState *state) const {
     color final_color = color(0.f, 0.f, 0.f);
     color throughput = color(1.f, 1.f, 1.f);
     ray current_ray = r;
 
     int vert_slot[CACHE_MAX_VERTS];
-    color vert_T[CACHE_MAX_VERTS];     // T_k
-    color vert_C[CACHE_MAX_VERTS];     // C_k
+    color vert_T[CACHE_MAX_VERTS]; // T_k
+    color vert_C[CACHE_MAX_VERTS]; // C_k
     int n_verts = 0;
-    
 
     for (int i = 0; i < depth; i++) {
       hit_record record;
@@ -68,21 +67,21 @@ private:
         continue;
       }
 
-      if (cache){
+      if (cache) {
         int slot = cache->slot(record.p, record.normal);
 
-        if (!updating){
+        if (!updating) {
           color cached_color;
-          if (i>=1){
-            if(cache->lookup(slot, cached_color)){
+          if (i >= 1) {
+            if (cache->lookup(slot, cached_color)) {
               final_color += throughput * cached_color;
               break;
             }
           }
         }
 
-        if (updating){
-          if (n_verts < CACHE_MAX_VERTS){
+        if (updating) {
+          if (n_verts < CACHE_MAX_VERTS) {
             vert_slot[n_verts] = slot;
             vert_T[n_verts] = throughput;
             vert_C[n_verts] = final_color;
@@ -106,13 +105,12 @@ private:
       current_ray = scattered;
     }
 
-    if (cache && updating){
-      for(int j =0 ; j<CACHE_MAX_VERTS; j++){
+    if (cache && updating) {
+      for (int j = 0; j < CACHE_MAX_VERTS; j++) {
         color diff = final_color - vert_C[j];
         color T = vert_T[j];
-        color cached(safe_div(diff.r() , T.r()),
-                    safe_div( diff.g(), T.g()),
-                    safe_div( diff.b(), T.b()));
+        color cached(safe_div(diff.r(), T.r()), safe_div(diff.g(), T.g()),
+                     safe_div(diff.b(), T.b()));
         cache->add(vert_slot[j], cached);
       }
     }
@@ -226,19 +224,29 @@ public:
 
   __device__ color render(const unsigned int row, const unsigned int col,
                           const hittable *world, const hittable *lights,
-                          radiance_cache* cache,
+                          radiance_cache *cache,
                           curandState *state) { // TODO change this later
     interval color_intensity = interval(0.000f, 0.999f);
     color pixel_color(0., 0., 0.);
     for (int s_i = 0; s_i < sqrt_spp; s_i++) {
       for (int s_j = 0; s_j < sqrt_spp; s_j++) {
         ray r = get_ray(col, row, s_i, s_j, state);
-        pixel_color += ray_color(r, world, lights, max_depth, cache, false, state);
+        pixel_color +=
+            ray_color(r, world, lights, max_depth, cache, false, state);
       }
     }
     color gamma_corrected_color =
         linear_to_gamma(pixel_color * pixel_sample_scale);
     return color_intensity.clamp(gamma_corrected_color);
+  }
+
+  __device__ void update_cache(unsigned int row, unsigned int col,
+                               const hittable *world, const hittable *lights,
+                               radiance_cache *cache, curandState *state) 
+                              {
+    
+    ray r = get_ray(col, row, random_int(0, sqrt_spp, state), random_int(0, sqrt_spp, state), state);
+    ray_color(r, world, lights, max_depth, cache, true, state);
   }
 };
 
