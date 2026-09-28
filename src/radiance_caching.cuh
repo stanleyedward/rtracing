@@ -73,7 +73,12 @@ __global__ void init_cache_kernel(radiance_cache* cache, cache_cell* cells, hitt
 
     float longest_axis = fmaxf(bbox.x.size(), fmaxf(bbox.y.size(), bbox.z.size()))*1.0001f;
     assert(longest >= 0.0f);
-    cache->inv_cell_size = CACHE_RES/longest_axis;
+    cache->inv_cell_size = CACHE_RES / longest_axis;
+}
+
+__device__ inline float safe_div(float num1, float num2){
+    if (num2 < 1e-4f) return 0.f;
+    return fminf(fmaxf(num1 / num2, 0.f), 50.f); //if too bright clamp
 }
 
 #endif

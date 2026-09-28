@@ -2,11 +2,13 @@
 #define CAMERA_H
 
 #include "common.cuh"
+#include "driver_types.h"
 #include "hittable.cuh"
 #include "interval.cuh"
 #include "material.cuh"
 #include "vec3.cuh"
 #include "pdf.cuh"
+#include "radiance_caching.cuh"
 #include <cmath>
 
 class camera {
@@ -23,10 +25,17 @@ private:
 
   __device__ color ray_color(const ray &r, const hittable *world,
                              const hittable *lights, int depth,
+                             radiance_cache* cache, bool updating,
                              curandState *state) const {
     color final_color = color(0.f, 0.f, 0.f);
     color throughput = color(1.f, 1.f, 1.f);
     ray current_ray = r;
+
+    int vert_slot[CACHE_MAX_VERTS];
+    color vert_T[CACHE_MAX_VERTS];     // T_k
+    color vert_C[CACHE_MAX_VERTS];     // C_k
+    int n_verts = 0;
+    
 
     for (int i = 0; i < depth; i++) {
       hit_record record;
@@ -59,6 +68,29 @@ private:
         continue;
       }
 
+      if (cache){
+        int slot = cache->slot(record.p, record.normal);
+
+        if (!updating){
+          color cached_color;
+          if (i>=1){
+            if(cache->lookup(slot, cached_color)){
+              final_color += throughput * cached_color;
+              break;
+            }
+          }
+        }
+
+        if (updating){
+          if (n_verts < CACHE_MAX_VERTS){
+            vert_slot[n_verts] = slot;
+            vert_T[n_verts] = throughput;
+            vert_C[n_verts] = final_color;
+            n_verts++;
+          }
+        }
+      }
+
       hittable_pdf light_pdf(*lights, record.p);
       surface_pdf_holder surface_pdf(srecord.pdf_type, record.normal);
       mixture_pdf mixed_pdf(&light_pdf, surface_pdf.ptr);
@@ -73,6 +105,18 @@ private:
       throughput *= srecord.attenuation * scattering_pdf / pdf_value;
       current_ray = scattered;
     }
+
+    if (cache && updating){
+      for(int j =0 ; j<CACHE_MAX_VERTS; j++){
+        color diff = final_color - vert_C[j];
+        color T = vert_T[j];
+        color cached(safe_div(diff.r() , T.r()),
+                    safe_div( diff.g(), T.g()),
+                    safe_div( diff.b(), T.b()));
+        cache->add(vert_slot[j], cached);
+      }
+    }
+
     return final_color;
   }
 
@@ -182,13 +226,14 @@ public:
 
   __device__ color render(const unsigned int row, const unsigned int col,
                           const hittable *world, const hittable *lights,
+                          radiance_cache* cache,
                           curandState *state) { // TODO change this later
     interval color_intensity = interval(0.000f, 0.999f);
     color pixel_color(0., 0., 0.);
     for (int s_i = 0; s_i < sqrt_spp; s_i++) {
       for (int s_j = 0; s_j < sqrt_spp; s_j++) {
         ray r = get_ray(col, row, s_i, s_j, state);
-        pixel_color += ray_color(r, world, lights, max_depth, state);
+        pixel_color += ray_color(r, world, lights, max_depth, cache, false, state);
       }
     }
     color gamma_corrected_color =
