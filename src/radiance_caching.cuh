@@ -2,11 +2,15 @@
 #define RADIANCE_CACHE_H
 
 #include <cassert>
-#define CACHE_RES 64
 #define CACHE_BINS 6
-#define CACHE_UPDATE_PASSES 4
-#define CACHE_MIN_SAMPLES 4
+#define CACHE_RES 64 * 2
+#define CACHE_UPDATE_PASSES 4 * 2
+#define CACHE_MIN_SAMPLES 4 * 2
 #define CACHE_MAX_VERTS 8
+
+// #define CACHE_RES 128
+// #define CACHE_UPDATE_PASSES 8
+// #define CACHE_MIN_SAMPLES 8
 
 #include "color.cuh"
 #include "common.cuh"
@@ -77,8 +81,8 @@ __global__ void init_cache_kernel(radiance_cache *cache, cache_cell *cells,
   cache->min_z = bbox.z.min;
 
   float longest_axis =
-      fmaxf(bbox.x.size(), fmaxf(bbox.y.size(), bbox.z.size())) * 1.0001f;
-  assert(longest >= 0.0f);
+      fmaxf(bbox.x.size(), fmaxf(bbox.y.size(), bbox.z.size()));
+  assert(longest_axis >= 0.0f);
   cache->inv_cell_size = CACHE_RES / longest_axis;
 }
 
