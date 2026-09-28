@@ -35,6 +35,7 @@ private:
     color vert_T[CACHE_MAX_VERTS]; // T_k
     color vert_C[CACHE_MAX_VERTS]; // C_k
     int n_verts = 0;
+    bool seen_diffuse = false;
 
     for (int i = 0; i < depth; i++) {
       hit_record record;
@@ -73,7 +74,7 @@ private:
         if (!updating) {
           color cached_color;
           if (i >= 1) {
-            if (cache->lookup(slot, cached_color)) {
+            if (seen_diffuse && cache->lookup(slot, cached_color)) {
               final_color += throughput * cached_color;
               break;
             }
@@ -89,6 +90,7 @@ private:
           }
         }
       }
+      seen_diffuse = true;
 
       hittable_pdf light_pdf(*lights, record.p);
       surface_pdf_holder surface_pdf(srecord.pdf_type, record.normal);
