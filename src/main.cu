@@ -13,10 +13,11 @@
 
 #define SCENE_NUMBER 1
 #define SEED 2004
-#define RADIANCE_CACHING false //for now
+#define RADIANCE_CACHING false // for now
 
-__global__ void render(float *output_image, hittable **world, hittable **lights, 
-                       camera *cam, radiance_cache* cache, curandState *render_states) {
+__global__ void render(float *output_image, hittable **world, hittable **lights,
+                       camera *cam, radiance_cache *cache,
+                       curandState *render_states) {
   unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
   unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
   if (row >= cam->image_height || col >= cam->image_width)
@@ -24,12 +25,27 @@ __global__ void render(float *output_image, hittable **world, hittable **lights,
   vec3 pixel_color;
   unsigned int pixel_idx = row * cam->image_width + col;
   curandState local_rand_state = render_states[row * cam->image_width + col];
-  pixel_color = cam->render(row, col, *world, *lights, cache, &local_rand_state);
+  pixel_color =
+      cam->render(row, col, *world, *lights, cache, &local_rand_state);
   unsigned int output_idx = pixel_idx * 3;
 #pragma unroll 3
   for (int i = 0; i < 3; i++)
     output_image[output_idx + i] = pixel_color[i];
   render_states[pixel_idx] = local_rand_state; // wrtb if need more frames
+}
+
+__global__ void update_cache_kernel(hittable **world, hittable **lights,
+                                    camera *cam, radiance_cache *cache,
+                                    curandState *render_states) {
+  unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
+  unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
+  if (row >= cam->image_height || col >= cam->image_width)
+    return;
+  vec3 pixel_color;
+  unsigned int pixel_idx = row * cam->image_width + col;
+  curandState local_rand_state = render_states[row * cam->image_width + col];
+  cam->update_cache(row, col, *world, *lights, cache, &local_rand_state);
+  render_states[pixel_idx] = local_rand_state;
 }
 
 int main() {
@@ -86,15 +102,27 @@ int main() {
   float *h_output_image;
   h_output_image = (float *)malloc(output_image_size * CH * sizeof(float));
 
-  radiance_cache* d_radcache = nullptr;
-  cache_cell* d_cells = nullptr;
-  if (RADIANCE_CACHING){
-    size_t n_cells = CACHE_RES*CACHE_RES*CACHE_RES*CACHE_BINS;
-    CHECK_CUDA(cudaMalloc(&d_cells, n_cells*sizeof(cache_cell)));
-    CHECK_CUDA(cudaMemset(&d_cells, 0, n_cells*sizeof(cache_cell)));
+  radiance_cache *d_radcache = nullptr;
+  cache_cell *d_cells = nullptr;
+  if (RADIANCE_CACHING) {
+    size_t n_cells = CACHE_RES * CACHE_RES * CACHE_RES * CACHE_BINS;
+    CHECK_CUDA(cudaMalloc(&d_cells, n_cells * sizeof(cache_cell)));
+    CHECK_CUDA(cudaMemset(&d_cells, 0, n_cells * sizeof(cache_cell)));
     CHECK_CUDA(cudaMalloc(&d_radcache, sizeof(radiance_cache)));
 
-    init_cache_kernel<<<1,1>>>(d_radcache, d_cells, scene->d_world);
+    init_cache_kernel<<<1, 1>>>(d_radcache, d_cells, scene->d_world);
+    CHECK_CUDA(cudaGetLastError());
+    CHECK_CUDA(cudaDeviceSynchronize());
+
+    std::clog << "[INFO] starting radiance caching.\n";
+    GPUTimer rctimer;
+    rctimer.begin();
+    for (int i = 0; i < CACHE_UPDATE_PASSES; i++) {
+      update_cache_kernel<<<numBlocksPerGrid, numThreadsPerBlock>>>(
+          scene->d_world, scene->d_lights, scene->d_cam, d_radcache,
+          d_render_states);
+    }
+    float rctime = timer.end();
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());
   }
@@ -134,8 +162,10 @@ int main() {
   cudaFree(d_output_image);
   cudaFree(d_render_states);
   cudaFree(d_init_rand_state);
-  if(d_radcache) CHECK_CUDA(cudaFree(d_radcache));
-  if(d_cells) CHECK_CUDA(cudaFree(d_cells));
+  if (d_radcache)
+    CHECK_CUDA(cudaFree(d_radcache));
+  if (d_cells)
+    CHECK_CUDA(cudaFree(d_cells));
 
   return 0;
 }
