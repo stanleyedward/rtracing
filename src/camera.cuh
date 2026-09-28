@@ -106,7 +106,7 @@ private:
     }
 
     if (cache && updating) {
-      for (int j = 0; j < CACHE_MAX_VERTS; j++) {
+      for (int j = 0; j < n_verts; j++) {
         color diff = final_color - vert_C[j];
         color T = vert_T[j];
         color cached(safe_div(diff.r(), T.r()), safe_div(diff.g(), T.g()),
@@ -242,10 +242,10 @@ public:
 
   __device__ void update_cache(unsigned int row, unsigned int col,
                                const hittable *world, const hittable *lights,
-                               radiance_cache *cache, curandState *state) 
-                              {
-    
-    ray r = get_ray(col, row, random_int(0, sqrt_spp, state), random_int(0, sqrt_spp, state), state);
+                               radiance_cache *cache, curandState *state) {
+
+    ray r = get_ray(col, row, random_int(0, sqrt_spp, state),
+                    random_int(0, sqrt_spp, state), state);
     ray_color(r, world, lights, max_depth, cache, true, state);
   }
 };

@@ -13,7 +13,7 @@
 
 #define SCENE_NUMBER 1
 #define SEED 2004
-#define RADIANCE_CACHING false // for now
+#define RADIANCE_CACHING true // for now
 
 __global__ void render(float *output_image, hittable **world, hittable **lights,
                        camera *cam, radiance_cache *cache,
@@ -107,7 +107,7 @@ int main() {
   if (RADIANCE_CACHING) {
     size_t n_cells = CACHE_RES * CACHE_RES * CACHE_RES * CACHE_BINS;
     CHECK_CUDA(cudaMalloc(&d_cells, n_cells * sizeof(cache_cell)));
-    CHECK_CUDA(cudaMemset(&d_cells, 0, n_cells * sizeof(cache_cell)));
+    CHECK_CUDA(cudaMemset(d_cells, 0, n_cells * sizeof(cache_cell)));
     CHECK_CUDA(cudaMalloc(&d_radcache, sizeof(radiance_cache)));
 
     init_cache_kernel<<<1, 1>>>(d_radcache, d_cells, scene->d_world);
@@ -122,9 +122,11 @@ int main() {
           scene->d_world, scene->d_lights, scene->d_cam, d_radcache,
           d_render_states);
     }
-    float rctime = timer.end();
+    float rctime = rctimer.end();
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());
+
+    std::clog << "total time to cache: " << rctime << " ms\n";
   }
 
   CHECK_CUDA(
