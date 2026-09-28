@@ -18,3 +18,4 @@ renders a bit faster than the original raytracing books code
 - maybe remove virtual dispatch and use flat structs for mem locality and no vtable traversal
 - faster bvh construction with structs too : https://developer.nvidia.com/blog/thinking-parallel-part-iii-tree-construction-gpu/
 - shadow rays instead of mixed pdf
+- https://github.com/NVIDIA-RTX/SHARC/blob/main/docs/Integration.md

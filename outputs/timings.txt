@@ -1,0 +1,19 @@
+alum + glass cornell box: time to render: 66843.2 ms
+
+with rc og res: [INFO] starting radiance caching.
+total time to cache: 93.6581 ms
+[INFO] started rendering.
+time to render: 12020 ms
+
+
+rc_ double cache[INFO] starting radiance caching.
+total time to cache: 182.346 ms
+[INFO] started rendering.
+time to render: 12373.1 ms
+
+rc_duble_cache_seen_diffuse
+[INFO] starting radiance caching.
+total time to cache: 217.648 ms
+[INFO] started rendering.
+time to render: 14641.4 ms
+
