@@ -3,9 +3,9 @@
 
 #include <cassert>
 #define CACHE_BINS 6
-#define CACHE_RES 64 * 2
-#define CACHE_UPDATE_PASSES 4 * 2
-#define CACHE_MIN_SAMPLES 4 * 2
+#define CACHE_RES 64 * 4
+#define CACHE_UPDATE_PASSES 4 * 4
+#define CACHE_MIN_SAMPLES 4 * 4
 #define CACHE_MAX_VERTS 8
 
 // #define CACHE_RES 128
