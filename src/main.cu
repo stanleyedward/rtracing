@@ -104,13 +104,16 @@ int main() {
 
   radiance_cache *d_radcache = nullptr;
   cache_cell *d_cells = nullptr;
+  unsigned long long *d_keys = nullptr;
   if (RADIANCE_CACHING) {
-    size_t n_cells = CACHE_RES * CACHE_RES * CACHE_RES * CACHE_BINS;
+    size_t n_cells = CACHE_TABLE_SIZE;
     CHECK_CUDA(cudaMalloc(&d_cells, n_cells * sizeof(cache_cell)));
     CHECK_CUDA(cudaMemset(d_cells, 0, n_cells * sizeof(cache_cell)));
+    CHECK_CUDA(cudaMalloc(&d_keys, n_cells * sizeof(unsigned long long)));
+    CHECK_CUDA(cudaMemset(d_keys, 0, n_cells * sizeof(unsigned long long)));
     CHECK_CUDA(cudaMalloc(&d_radcache, sizeof(radiance_cache)));
 
-    init_cache_kernel<<<1, 1>>>(d_radcache, d_cells, scene->d_world);
+    init_cache_kernel<<<1, 1>>>(d_radcache, d_cells, d_keys);
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());
 
@@ -164,10 +167,11 @@ int main() {
   cudaFree(d_output_image);
   cudaFree(d_render_states);
   cudaFree(d_init_rand_state);
-  if (d_radcache)
+  if (d_radcache) {
     CHECK_CUDA(cudaFree(d_radcache));
-  if (d_cells)
     CHECK_CUDA(cudaFree(d_cells));
+    CHECK_CUDA(cudaFree(d_keys));
+  }
 
   return 0;
 }

@@ -69,12 +69,11 @@ private:
       }
 
       if (cache) {
-        int slot = cache->slot(record.p, record.normal);
-
         if (!updating) {
-          color cached_color;
-          if (i >= 1) {
-            if (seen_diffuse && cache->lookup(slot, cached_color)) {
+          if (i >= 1 && seen_diffuse) {
+            color cached_color;
+            int slot = cache->slot(record.p, record.normal, updating);
+            if (cache->lookup(slot, cached_color)) {
               final_color += throughput * cached_color;
               break;
             }
@@ -83,6 +82,7 @@ private:
 
         if (updating) {
           if (n_verts < CACHE_MAX_VERTS) {
+            int slot = cache->slot(record.p, record.normal, updating);
             vert_slot[n_verts] = slot;
             vert_T[n_verts] = throughput;
             vert_C[n_verts] = final_color;
