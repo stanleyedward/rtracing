@@ -1,5 +1,8 @@
+------------------CORNELL BOX-------------------------------
 alum + glass cornell box: time to render: 66843.2 ms
 
+
+############# 3d grid rc#################################
 with rc og res: [INFO] starting radiance caching.
 total time to cache: 93.6581 ms
 [INFO] started rendering.
@@ -16,13 +19,30 @@ rc_duble_cache_seen_diffuse
 total time to cache: 217.648 ms
 [INFO] started rendering.
 time to render: 14641.4 ms
+the CUDA memory was around 2.0GB (almost 1.6gb+ because of the grid.)
 
+################HASHRC#####################################
 bash run.sh > image_hashrc_final_scene.ppm
 [INFO] starting radiance caching.
 total time to cache: 1041.31 ms
 [INFO] started rendering.
 time to render: 10083.8 ms
 
+bash run.sh > image_hashrc_lod550_mixedpdf.ppm 
+[INFO] starting radiance caching.
+total time to cache: 381.85 ms
+[INFO] started rendering.
+time to render: 13143.6 ms
+./build/Release/raytracer               382MiB
+
+
+bash run.sh > image_nonrc_lod550_mixedpdf.ppm
+[INFO] started rendering.
+time to render: 61023.4 ms
+ ./build/Release/raytracer               358MiB 
+
+
+----------------------FINAL SCENE---------------------------------
 bash run.sh > image_NORC_final_scene.ppm
 [INFO] started rendering.
 time to render: 161552 ms
@@ -45,18 +65,3 @@ time to render: 33584.9 ms
     cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
     cudaDeviceSetLimit(cudaLimitStackSize, 8192);
     scene = Scene::final_scene(d_init_rand_state, 600, 1500, 30);
-
-bash run.sh > image_hashrc_lod550_mixedpdf.ppm 
-[INFO] starting radiance caching.
-total time to cache: 381.85 ms
-[INFO] started rendering.
-time to render: 13143.6 ms
-./build/Release/raytracer               382MiB
-
-
-bash run.sh > image_nonrc_lod550_mixedpdf.ppm
-[INFO] started rendering.
-time to render: 61023.4 ms
- ./build/Release/raytracer               358MiB 
-
-
