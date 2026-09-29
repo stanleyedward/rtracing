@@ -17,3 +17,46 @@ total time to cache: 217.648 ms
 [INFO] started rendering.
 time to render: 14641.4 ms
 
+bash run.sh > image_hashrc_final_scene.ppm
+[INFO] starting radiance caching.
+total time to cache: 1041.31 ms
+[INFO] started rendering.
+time to render: 10083.8 ms
+
+bash run.sh > image_NORC_final_scene.ppm
+[INFO] started rendering.
+time to render: 161552 ms
+./build/Release/raytracer               478MiB
+    break;
+  case 3:
+    cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
+    cudaDeviceSetLimit(cudaLimitStackSize, 8192);
+    scene = Scene::final_scene(d_init_rand_state, 600, 1500, 30);
+
+
+newerrun with 1500spp
+bash run.sh > image_hashrc_final_scene.ppm
+[INFO] starting radiance caching.
+total time to cache: 1030.98 ms
+[INFO] started rendering.
+./build/Release/raytracer               478MiB
+time to render: 33584.9 ms
+  case 3:
+    cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
+    cudaDeviceSetLimit(cudaLimitStackSize, 8192);
+    scene = Scene::final_scene(d_init_rand_state, 600, 1500, 30);
+
+bash run.sh > image_hashrc_lod550_mixedpdf.ppm 
+[INFO] starting radiance caching.
+total time to cache: 381.85 ms
+[INFO] started rendering.
+time to render: 13143.6 ms
+./build/Release/raytracer               382MiB
+
+
+bash run.sh > image_nonrc_lod550_mixedpdf.ppm
+[INFO] started rendering.
+time to render: 61023.4 ms
+ ./build/Release/raytracer               358MiB 
+
+

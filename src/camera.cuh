@@ -67,6 +67,12 @@ private:
         current_ray = srecord.skip_pdf_ray;
         continue;
       }
+      // dbug
+      // if (cache && !updating && i == 0) {
+      //   unsigned int h = hash64(cache->make_key(record.p, record.normal));
+      //   return color((h & 255) / 255.f, ((h >> 8) & 255) / 255.f,
+      //                ((h >> 16) & 255) / 255.f);
+      // }
 
       if (cache) {
         if (!updating) {

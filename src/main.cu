@@ -13,7 +13,19 @@
 
 #define SCENE_NUMBER 1
 #define SEED 2004
-#define RADIANCE_CACHING true // for now
+#define RADIANCE_CACHING false // for now
+
+__global__ void init_cache_kernel(radiance_cache *cache, cache_cell *cells,
+                                  unsigned long long *keys, camera *cam) {
+  cache->cells = cells;
+  cache->keys = keys;
+  cache->cam_x = cam->lookfrom.x();
+  cache->cam_y = cam->lookfrom.y();
+  cache->cam_z = cam->lookfrom.z();
+  float c = 2.f * tanf(degree_to_radian(cam->vFov) * 0.5f) / cam->image_height;
+  cache->lod_dist = CACHE_LOD_DIST;
+  cache->base_cell_size = CACHE_LOD_K * c * CACHE_LOD_DIST;
+}
 
 __global__ void render(float *output_image, hittable **world, hittable **lights,
                        camera *cam, radiance_cache *cache,
@@ -73,7 +85,7 @@ int main() {
   case 3:
     cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
     cudaDeviceSetLimit(cudaLimitStackSize, 8192);
-    scene = Scene::final_scene(d_init_rand_state, 400, 450, 20);
+    scene = Scene::final_scene(d_init_rand_state, 600, 1500, 30);
     break;
   case 4:
     cudaDeviceSetLimit(cudaLimitMallocHeapSize, 128 * 1024 * 1024);
@@ -113,7 +125,7 @@ int main() {
     CHECK_CUDA(cudaMemset(d_keys, 0, n_cells * sizeof(unsigned long long)));
     CHECK_CUDA(cudaMalloc(&d_radcache, sizeof(radiance_cache)));
 
-    init_cache_kernel<<<1, 1>>>(d_radcache, d_cells, d_keys);
+    init_cache_kernel<<<1, 1>>>(d_radcache, d_cells, d_keys, scene->d_cam);
     CHECK_CUDA(cudaGetLastError());
     CHECK_CUDA(cudaDeviceSynchronize());
 

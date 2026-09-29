@@ -2,16 +2,18 @@
 #define RADIANCE_CACHE_H
 
 #include <cassert>
-#include <functional>
 #define CACHE_BINS 6
 #define CACHE_RES (64 * 4)
 #define CACHE_UPDATE_PASSES (4 * 4)
-#define CACHE_MIN_SAMPLES (4 * 4)
+#define CACHE_MIN_SAMPLES (4 * 2)
 #define CACHE_MAX_VERTS 8
 
 #define CACHE_TABLE_SIZE (1u << 20)
 #define CACHE_MAX_PROBES 8
-#define CACHE_CELL_SIZE (2.17f)
+
+#define CACHE_USE_LOD true
+#define CACHE_LOD_K (8.f * 1)
+#define CACHE_LOD_DIST (550.f)
 
 // #define CACHE_RES 128
 // #define CACHE_UPDATE_PASSES 8
@@ -40,8 +42,11 @@ class radiance_cache {
 public:
   cache_cell *cells;
   // float min_x, min_y, min_z;
+  float cam_x, cam_y, cam_z;
   unsigned long long *keys;
   float inv_cell_size;
+  float base_cell_size;
+  float lod_dist;
 
   __device__ void add(int s, const color &L) {
     if (s < 0)
@@ -96,6 +101,14 @@ public:
 
   __device__ unsigned long long make_key(const point3 &p, const vec3 &n) const {
 
+    float distance = vec3(cam_x - p.x(), cam_y - p.y(), cam_z - p.z()).length();
+    int level = 0;
+    if (CACHE_USE_LOD) {
+      level = (int)floorf(log2f(fmaxf(distance / lod_dist, 1.0f)));
+      level = min(level, 15);
+    }
+    float inv_cell_size = 1.f / (base_cell_size * (float)(1 << level));
+
     long long ix = floorf(p.x() * inv_cell_size + 0.37f);
     long long iy = floorf(p.y() * inv_cell_size + 0.37f);
     long long iz = floorf(p.z() * inv_cell_size + 0.37f);
@@ -107,11 +120,12 @@ public:
     int dom_axis = (ax >= ay && ax >= az) ? 0 : (ay >= az ? 1 : 2);
     int bin = dom_axis * 2 + (n[dom_axis] < 0 ? 1 : 0);
 
-    const long long OFF = 1 << 19;
-    unsigned long long key = ((unsigned long long)(ix + OFF) & 0xFFFFF) |
-                             ((unsigned long long)(iy + OFF) & 0xFFFFF) << 20 |
-                             ((unsigned long long)(iz + OFF) & 0xFFFFF) << 40 |
-                             ((unsigned long long)bin) << 60 | (1ull << 63);
+    const long long OFF = 1 << 17;
+    unsigned long long key = ((unsigned long long)(ix + OFF) & 0x3FFFF) |
+                             ((unsigned long long)(iy + OFF) & 0x3FFFF) << 18 |
+                             ((unsigned long long)(iz + OFF) & 0x3FFFF) << 36 |
+                             ((unsigned long long)level) << 54 |
+                             ((unsigned long long)bin) << 58 | (1ull << 63);
 
     return key;
   }
@@ -128,13 +142,6 @@ public:
     return true;
   }
 };
-
-__global__ void init_cache_kernel(radiance_cache *cache, cache_cell *cells,
-                                  unsigned long long *keys) {
-  cache->cells = cells;
-  cache->keys = keys;
-  cache->inv_cell_size = 1.f / CACHE_CELL_SIZE;
-}
 
 __device__ inline float safe_div(float num1, float num2) {
   if (num2 < 1e-4f)
