@@ -14,13 +14,13 @@ same image about 4.5x faster with radiance caching
 
 <img src="assets/speed.png">
 
-the hash table uses a fixed 24 MiB for any scene size, while a dense 3d grid grows with resolution³ (~2.0 GB at 256³):
+the hash table uses a fixed 24 MiB for any scene size, while a dense 3d grid grows with resolution^3 (~2.0 GB at cache_res=256):
 
 <img src="assets/memory.png">
 
 ### 3d grid vs hash grid
 
-|no rc|3d grid 64³ (24 MiB)|3d grid 256³ (1.5 GiB)|hash grid + LOD (24 MiB)|
+|no rc|3d grid res=64^3 (24 MiB)| 3d grid cache_res=256 (1.5 GiB)|hash grid + LOD (24 MiB)|
 |:-:|:-:|:-:|:-:|
 |<img src="assets/cornell_norc.png">|<img src="assets/cornell_grid64.png">|<img src="assets/cornell_grid256.png">|<img src="assets/cornell_hash.png">|
 
