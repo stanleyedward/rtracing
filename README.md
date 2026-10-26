@@ -9,20 +9,6 @@ A software raytracer in written in CUDA, w/ MIS via mixed PDFs, BVH and a hash g
 ### radiance caching
 a few low-spp update passes store the light leaving each small patch of surface in a hash table, keyed by position, normal and a distance-based LOD level. during the render, a path that reaches a diffuse surface after its first diffuse bounce reads the cached value and stops, instead of bouncing up to `max_depth`. Only enabled for diffuse materials, view-dependent materials cause cache cell artifacts.
 
-### speed and memory
-same image about 4.5x faster with radiance caching
-
-<img src="assets/speed.png">
-
-the hash table uses a fixed 24 MiB for any scene size, while a dense 3d grid grows with resolution^3 (~2.0 GB at cache_res=256):
-
-<img src="assets/memory.png">
-
-### 3d grid vs hash grid
-
-|no rc|3d grid res=64^3 (24 MiB)| 3d grid cache_res=256 (1.5 GiB)|hash grid + LOD (24 MiB)|
-|:-:|:-:|:-:|:-:|
-|<img src="assets/cornell_norc.png">|<img src="assets/cornell_grid64.png">|<img src="assets/cornell_grid256.png">|<img src="assets/cornell_hash.png">|
 
 ### LOD
 
@@ -31,6 +17,14 @@ each colour is one cache cell. cells double in size with distance from the camer
 |LOD|no LOD|
 |:-:|:-:|
 |<img src="assets/lod_on.png">|<img src="assets/lod_off.png">|
+
+
+### 3d grid vs hash grid
+
+|no rc|3d grid res=64^3 (24 MiB)| 3d grid cache_res=256 (1.5 GiB)|hash grid + LOD (24 MiB)|
+|:-:|:-:|:-:|:-:|
+|<img src="assets/cornell_norc.png">|<img src="assets/cornell_grid64.png">|<img src="assets/cornell_grid256.png">|<img src="assets/cornell_hash.png">|
+
 
 ### todo
 
@@ -46,3 +40,13 @@ each colour is one cache cell. cells double in size with distance from the camer
 - maybe remove virtual dispatch and use flat structs for mem locality and no vtable traversal
 - faster bvh construction with structs too : https://developer.nvidia.com/blog/thinking-parallel-part-iii-tree-construction-gpu/
 - shadow rays instead of mixed pdf
+
+
+### speed and memory
+same image about 4.5x faster with radiance caching
+
+<img src="assets/speed.png">
+
+the hash table uses a fixed 24 MiB for any scene size, while a dense 3d grid grows with resolution^3 (~2.0 GB at cache_res=256):
+
+<img src="assets/memory.png">
